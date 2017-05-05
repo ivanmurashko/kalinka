@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+<link rel="stylesheet" type="text/css" href="/iface/media/css/login.css" />
+{% endblock %}
+
+{% block bodyclass %}login{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block branding %}{% trans "Auth" %}{% endblock %}
+
+{% block content %}
+<h2>{% trans "Session was closed" %}</h2>
+<br class="clear">
+<p align="center"><a href="{% url django.contrib.auth.views.login %}">{% trans "Log in again" %}</a></p>
+{% endblock %}
+
+{% block footer %}{% endblock %}

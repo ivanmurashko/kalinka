@@ -1,0 +1,25 @@
+DELIMITER $$
+
+/* The test data for Launcher application test 
+   It creates 1 hosts with 1 application
+*/
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+/* APPLICATION SETUP */
+
+-- create test apps
+SET @application = '@APP_LAUNCHER_TEST_ID@' ;$$
+SET @app_name = '@APP_LAUNCHER_TEST_NAME@';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test application';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid, @description, @return_value);$$ 
+
+DELIMITER ;

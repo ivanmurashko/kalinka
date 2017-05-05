@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <module>
+    <id>IDMOD</id>
+    <lib_path>LIBPATH</lib_path>
+  </module>
+  <utest>
+    <id>IDUTEST</id>
+    <lib_path> UTEST Path</lib_path>
+  </utest>
+  <wrong>
+    <id>IDUTEST</id>
+    <lib_path>UTEST Path</lib_path>
+    <id> ID2 </id>
+  </wrong>
+</root>

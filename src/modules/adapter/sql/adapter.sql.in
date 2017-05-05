@@ -1,0 +1,135 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- The table keeps info about objects adapter provided by the adapter
+-- module
+DROP TABLE  IF EXISTS `klk_adapter_object`;$$
+CREATE TABLE`klk_adapter_object` (
+  `object_id` VARCHAR(40) NOT NULL DEFAULT '',
+  PRIMARY KEY (`object_id`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+-- The table keeps info for adapter module
+-- the info include host uuid and ICE endpoint info
+-- that is necessary for clients to communicate with the adapter
+-- The adapter is connected to an application 
+-- (identifies by host id and module id) and can keep adapter for 
+-- several objects
+DROP TABLE IF EXISTS `klk_adapter`;$$
+CREATE TABLE `klk_adapter` (
+  `adapter` VARCHAR(40) NOT NULL DEFAULT '',
+  `app_id` VARCHAR(40) NOT NULL,
+  `object_id` VARCHAR(40) NOT NULL,
+  `endpoint` VARCHAR(255),
+  PRIMARY KEY (`adapter`),
+  CONSTRAINT `fk_klk_adapter_application` FOREIGN KEY (`app_id`) REFERENCES
+`klk_applications` (`application`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_klk_adapter_object` FOREIGN KEY (`object_id`) REFERENCES
+`klk_adapter_object` (`object_id`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- stored procedures
+
+-- Updates adapter connection info
+-- @param[in] host_uuid - identifies host (see klk_hosts)
+-- @param[in] module_id - identifies module
+-- @param[in] object_id - identifies object (see klk_adapter_object)
+-- @param[in] endpoint - the endpoint to be set
+-- @param[out] retirn_value - the result 0 - OK <0 - failure
+-- @note host_uuid + module_id identifies application
+-- from klk_applications
+DROP PROCEDURE IF EXISTS `klk_adapter_update`;$$
+CREATE PROCEDURE `klk_adapter_update` (
+  IN host_uuid VARCHAR(40), 
+  IN module_id VARCHAR(40), 
+  IN object_id VARCHAR(40), 
+  IN endpoint VARCHAR(255), 
+  OUT return_value INT 
+) 
+BEGIN
+  DECLARE adapter VARCHAR(40);
+  DECLARE int_endpoint VARCHAR(255);
+  DECLARE app_id VARCHAR(40);
+
+  DECLARE CONTINUE HANDLER FOR NOT FOUND SET return_value = -1; 
+
+  SET return_value = 0;
+
+  -- Retrive application assosiated with the host and module
+  SELECT klk_applications.application INTO app_id FROM klk_applications WHERE 
+    klk_applications.host = host_uuid AND
+    klk_applications.module = module_id;
+
+  IF return_value = 0 THEN
+    SET  TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    START TRANSACTION;
+  
+      SELECT klk_adapter.adapter INTO adapter FROM klk_adapter WHERE 
+        klk_adapter.app_id = app_id AND 
+        klk_adapter.object_id = object_id FOR UPDATE;
+
+      IF return_value = -1 THEN
+        SET return_value = 0;
+        SET adapter = UUID();
+        INSERT INTO klk_adapter(adapter, app_id, object_id, endpoint) 
+          VALUES(adapter, app_id, object_id, endpoint); 
+      ELSE
+        SET return_value = 0;
+        UPDATE klk_adapter SET
+          klk_adapter.endpoint = endpoint
+        WHERE klk_adapter.adapter = adapter;
+      END IF;
+		        		
+    COMMIT;
+  END IF;
+END$$
+
+-- Retrive adapter connection info for a specified host
+-- @param[in] host_uuid - identifies host (see klk_hosts)
+-- @param[in] module_id - identifies module
+-- @param[in] object_id - identifies object (see klk_adapter_object)
+-- @param[out] endpoint - the endpoint 
+-- @note host_uuid + module_id identifies application
+-- from klk_applications
+DROP PROCEDURE IF EXISTS`klk_adapter_get`;$$
+CREATE PROCEDURE `klk_adapter_get` (
+  IN host_uuid VARCHAR(40), 
+  IN module_id VARCHAR(40), 
+  IN object_id VARCHAR(40), 
+  OUT endpoint VARCHAR(255), 
+  OUT return_value INT 
+) 
+BEGIN	
+  DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+  SET endpoint = NULL;
+
+  SELECT klk_adapter.endpoint INTO endpoint FROM klk_adapter, klk_applications
+    WHERE 
+    klk_applications.host = host_uuid AND
+    klk_applications.module = module_id AND
+    klk_adapter.app_id = klk_applications.application AND
+    klk_adapter.object_id = object_id;
+
+  SET return_value = 0;
+END$$
+
+-- Default values
+INSERT INTO klk_adapter_object(object_id) 
+  VALUES  ('@MODULE_ADAPTER_MESSAGES_OBJECT@')$$
+INSERT INTO klk_adapter_object(object_id) 
+  VALUES  ('@MODULE_ADAPTER_RESOURCES_OBJECT@')$$
+INSERT INTO klk_adapter_object(object_id) 
+  VALUES  ('@MODULE_ADAPTER_DEV_OBJECT@')$$
+INSERT INTO klk_adapter_object(object_id) 
+  VALUES  ('@MODULE_ADAPTER_MODULES_OBJECT@')$$
+
+DELIMITER ;
+

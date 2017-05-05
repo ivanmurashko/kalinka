@@ -1,0 +1,92 @@
+kalinka-server (1.2.0-3) testing; urgency=low
+
+  * Tiket #237 Memory consumption in http-streamer
+  * Tiket #218 Stack trace output on failures
+  * Tiket #220 System refactoring
+  * Tiket #221 Service module changes for refactoring
+  * Tiket #222 Refactoring in adapter module
+  * Tiket #223 klklauncher application
+  * Tiket #224 Resource sharing
+  * Tiket #225 service module should show correct mem/cpu usage info
+  * Tiket #226 IModuleFactory sharing
+  * Tiket #227 CLI update for refactoring
+  * Tiket #228 Messages processing in klklauncher application factory
+	
+ -- ipp <ivan.murashko@gmail.com>  Sun, 21 Nov 2010 12:00:00 +0300
+
+kalinka-server (1.2.0-2) testing; urgency=low
+
+  * Tiket #215 Add IEEE1394 (firewire) source into transocde application
+  * ICE is used as framework for communication between CLI and daemon
+
+ -- ipp <ivan.murashko@gmail.com>  Thu, 17 Jun 2010 12:00:00 +0300
+
+kalinka-server (1.2.0-1) testing; urgency=low
+
+  * Tiket #207 Add a possibility to set up video quality for transcode
+  * Tiket #205 Add theora aka ogv format
+  * Tiket #196 Deadlock at Scheduled playback
+  * Tiket #204 Add schedule info int klk_files tables
+  * Tiket #179 Video archive generation and working with it
+  * Tiket #197 Scheduled playback hangs
+  * Tiket #189 Add SNMP trap for transcode application
+  * Tiket #193 Add support for transcode application to the web
+  * Tiket #171 Cannot add new TV station on a card that's already streams something
+	
+ -- ipp <ivan.murashko@gmail.com>  Sat, 03 Apr 2010 18:53:00 +0300
+
+kalinka-server (1.1.0-2) testing; urgency=low
+
+  * Ticket #187 The daemon cannot start on beethoven
+	
+ -- ipp <ivan.murashko@gmail.com>  Wed, 07 Jan 2010 14:35:00 +0300
+
+kalinka-server (1.1.0-1) testing; urgency=low
+
+  * Ticket #172 Started application failed on the first startup
+  * Ticket #173 CLI commands for transcode application
+  * Ticket #178 Define table structure for http source module
+  * Ticket #182 CLI commands for File module
+  * Ticket #170 HTTPsrc module
+  * Ticket #184 SNMP for HTTP streamer doesnot work
+  * Ticket #185 Transcode does not work with web cameras
+  * Ticket #122 Transcode application
+  * Ticket #174 Scheduled playback functionality
+  * Ticket #175 SNMP for transcode application
+  * Ticket #158 the default path for http streamer input CLI command is correlated with route name
+  * Ticket #162 DISEqC support for DVB-S
+  * Refactoring in different modules
+	
+ -- ipp <ivan.murashko@gmail.com>  Wed, 06 Jan 2010 23:19:00 +0300
+
+kalinka-server (1.0.0-4) testing; urgency=low
+
+  * Ticket #160 producing very huge file at /var/log/kalinka was fixed
+  * Ticket #153 DVB failed restore procedure was improved
+  * Ticket #157 additional field with DVB dev name was added to 
+                KLK-DVBSTREAMER-MIB::klkStatusTable
+  * Ticket #155 Incorrect DVB dev number output was fixed
+	
+ -- ipp <ivan.murashko@gmail.com>  Thu, 12 Aug 2009 15:11:00 +0300
+
+kalinka-server (1.0.0-3) testing; urgency=low
+
+  * Ticket #150 XML was replaced with Google protocol buffers in serialization
+  * Ticket #154 Wrong DEB update was fixed
+	
+ -- ipp <ivan.murashko@gmail.com>  Thu, 10 Aug 2009 15:20:00 +0300
+
+kalinka-server (1.0.0-2) testing; urgency=low
+
+  * Ticket #148 wrong allignement at dvbstreamer station show closed
+  * Ticket #147 (Wrong snmpd.conf patch) closed by ipp
+  * Ticket #149 Broken SNMP output for DVB card info closed
+  * Ticket #151 Integer indexes were introduced for all SNMP tables closed
+	
+ -- ipp <ivan.murashko@gmail.com>  Thu, 08 Aug 2009 11:23:38 +0300
+
+kalinka-server (1.0.0-1) testing; urgency=low
+
+  * Initial package version
+
+ -- ipp <ivan.murashko@gmail.com>  Mon, 03 Aug 2009 14:58:00 +0300

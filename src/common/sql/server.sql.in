@@ -1,0 +1,1000 @@
+DELIMITER $$
+
+-- kalinka generic tables
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- the log table --
+-- the table keeps log events and used to notify --
+-- database modifications --
+DROP TABLE IF EXISTS `klk_log`;$$
+
+CREATE TABLE `klk_log` (
+       `id` INTEGER NOT NULL AUTO_INCREMENT,
+       `module_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+       `timestamp` TIMESTAMP NOT NULL,
+       PRIMARY KEY (`id`)
+)
+ENGINE = InnoDB DEFAULT CHARSET=utf8;$$
+
+-- Stored procedure that will be called for the log updates --
+DROP PROCEDURE IF EXISTS `klk_log_add`$$
+CREATE PROCEDURE `klk_log_add` (
+       IN module_value VARCHAR(40)
+)
+BEGIN
+	INSERT INTO klk_log(module_uuid) VALUES(module_value);
+END$$
+
+
+DROP TABLE IF EXISTS `klk_applications`;$$
+
+-- The table keeps info about applications 
+CREATE TABLE `klk_applications` (
+       `application` VARCHAR(40) NOT NULL DEFAULT '',
+       `module` VARCHAR(40) NOT NULL DEFAULT '',
+       `name` VARCHAR(50) NOT NULL,
+       `enabled` TINYINT NOT NULL DEFAULT 0,
+       `priority` INTEGER NOT NULL DEFAULT 0,
+       `status`TINYINT NOT NULL DEFAULT 0,
+       `host` VARCHAR(40),
+       `description` VARCHAR(255),
+       PRIMARY KEY (`application`),
+       UNIQUE KEY `application` (`application`),
+       UNIQUE KEY (`module`, `host`)
+)
+ENGINE = InnoDB DEFAULT CHARSET=utf8;$$
+
+DROP TABLE IF EXISTS `klk_hosts`;$$
+
+CREATE TABLE `klk_hosts` (
+       `host` VARCHAR(40) NOT NULL DEFAULT '',
+       `host_name` VARCHAR(50) NOT NULL,
+       `cpu_index_typ` INTEGER NOT NULL DEFAULT 0,
+       `cpu_index_max` INTEGER NOT NULL DEFAULT 0,
+       PRIMARY KEY (`host`),
+       UNIQUE KEY `host`(`host`),
+       UNIQUE KEY `host_name`(`host_name`)
+)
+ENGINE = InnoDB DEFAULT CHARSET=utf8;$$
+
+
+DROP TABLE IF EXISTS `klk_bus_types`;$$
+CREATE TABLE `klk_bus_types` (
+       `bus_type` VARCHAR(40) NOT NULL DEFAULT '',
+       `description` VARCHAR(255) NOT NULL,
+       `bandwidth` INTEGER,
+       PRIMARY KEY (`bus_type`),
+       UNIQUE KEY `bus_type`(`bus_type`),
+       UNIQUE KEY `description`(`description`)
+       )
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+
+DROP TABLE IF EXISTS `klk_busses`;$$
+CREATE TABLE  `klk_busses` (
+       `bus` VARCHAR(40) NOT NULL DEFAULT '',
+       `id` INT, 
+       `host` VARCHAR(40) NOT NULL,
+       `description` VARCHAR(255),
+       `bus_type` VARCHAR(40) NOT NULL,
+       `bandwidth` INTEGER,
+       PRIMARY KEY (`bus`),
+       UNIQUE KEY `bus`(`bus`),
+       UNIQUE KEY `description`(`description`),
+       KEY `host` (`host`),
+       CONSTRAINT `fk_klk_busses_host` FOREIGN KEY (`host`) REFERENCES
+`klk_hosts` (`host`) ON DELETE CASCADE ON UPDATE CASCADE,
+       KEY `bus_type` (`bus_type`),
+       CONSTRAINT `fk_klk_bus_type` FOREIGN KEY (`bus_type`) REFERENCES
+`klk_bus_types` (`bus_type`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+DROP TABLE IF EXISTS `klk_resource_types`;$$
+CREATE TABLE `klk_resource_types` (
+       `resource_type` VARCHAR(40) NOT NULL DEFAULT '',
+       `description` VARCHAR(255) NOT NULL,
+       `bandwidth` INTEGER NOT NULL,
+       PRIMARY KEY (`resource_type`),
+       UNIQUE KEY `resource_type`(`resource_type`),
+       UNIQUE KEY `description`(`description`)
+       )
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+DROP TABLE IF EXISTS `klk_resources`;$$
+CREATE TABLE  `klk_resources` (
+       `resource` VARCHAR(40) NOT NULL DEFAULT '',
+       `id` INT,
+       `bus` VARCHAR(40) NOT NULL,
+       `resource_type` VARCHAR(40) NOT NULL,
+       `bandwidth` INTEGER NOT NULL,
+       `enabled` TINYINT(1) NOT NULL default '0',
+       `resource_name` VARCHAR(50) NOT NULL default '', 
+       PRIMARY KEY  (`resource`),
+       UNIQUE KEY `resource`(`resource`),
+       UNIQUE KEY (`resource_name`, `bus`),
+       KEY `resources_bus` (`bus`),
+       CONSTRAINT `klk_resources_bus` FOREIGN KEY (`bus`) REFERENCES
+`klk_busses` (`bus`) ON DELETE CASCADE ON UPDATE CASCADE,
+       KEY `resource_type` (`resource_type`),
+       CONSTRAINT `fk_klk_resources_resource_type` FOREIGN KEY
+(`resource_type`) REFERENCES `klk_resource_types` (`resource_type`) ON
+DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE=InnoDB CHARSET=utf8;$$
+
+-- Media types table
+DROP TABLE  IF EXISTS `klk_media_types`;$$ 
+CREATE TABLE `klk_media_types` (
+       `uuid` VARCHAR(40) NOT NULL DEFAULT '',       
+       `name` VARCHAR(40) NOT NULL DEFAULT '',
+       `description` VARCHAR(40) NOT NULL DEFAULT '',
+       PRIMARY KEY (`uuid`),
+       UNIQUE KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- create stored procedures and functions
+
+
+/*
+       add application
+
+*/
+DROP PROCEDURE IF EXISTS`klk_application_add`$$
+CREATE PROCEDURE `klk_application_add` (
+       INOUT application VARCHAR(40),
+       IN module VARCHAR(40),
+       IN name VARCHAR(50),
+       IN enabled TINYINT,
+       IN status TINYINT,
+       IN priority INTEGER,
+       IN host VARCHAR(40),
+       IN description VARCHAR(255),
+       OUT return_value INTEGER
+)
+BEGIN
+
+       IF (application IS NULL) THEN
+               SET application = UUID();
+       END IF;
+
+
+       INSERT INTO
+klk_applications(application,module,name,enabled,status,priority,host,description)
+               VALUES (application,module,name,enabled,status,priority,host,description);
+               SET return_value = 0;
+
+END$$
+
+-- Retrives application id by host uuid and module uuid
+DROP PROCEDURE IF EXISTS `klk_application_uuid_get`$$
+CREATE PROCEDURE `klk_application_uuid_get` (
+       IN module VARCHAR(40),
+       IN host VARCHAR(40),
+       OUT application VARCHAR(40)
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET application = NULL;
+
+	   SELECT klk_applications.application INTO application
+	   FROM klk_applications
+	   WHERE klk_applications.module = module AND
+	   		 klk_applications.host = host;
+END$$
+
+
+/*
+       update application
+
+*/
+DROP PROCEDURE IF EXISTS`klk_application_update`$$
+CREATE PROCEDURE `klk_application_update` (
+       IN application VARCHAR(40),
+       IN module VARCHAR(40),
+       IN name VARCHAR(50),
+       IN enabled TINYINT,
+       IN status TINYINT,
+       IN priority INTEGER,
+       IN host VARCHAR(40),
+       IN description VARCHAR(255),
+       OUT return_value INTEGER
+)
+BEGIN
+
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+       UPDATE
+           klk_applications
+       SET
+           klk_applications.module = module,
+           klk_applications.name = name,
+           klk_applications.enabled = enabled,
+           klk_applications.status = status,
+           klk_applications.priority = priority,
+           klk_applications.host = host,
+           klk_applications.description = description
+       WHERE
+           klk_applications.application = application;
+
+       SET return_value = 0;
+
+END$$
+
+
+/*
+       delete application
+
+       0 = ok
+       -1 = host not found
+*/
+DROP PROCEDURE IF EXISTS `klk_application_delete`$$
+CREATE PROCEDURE `klk_application_delete` (
+       IN application VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       DELETE FROM klk_applications WHERE klk_applications.application = application;
+       SET return_value = 0;
+END;$$
+
+
+
+/*
+       list applications
+*/
+
+DROP PROCEDURE IF EXISTS `klk_application_list`$$
+CREATE PROCEDURE `klk_application_list` (
+       IN hostuuid VARCHAR(40)
+)
+BEGIN
+       IF (hostuuid IS NULL) THEN
+               SELECT application, module, name, enabled, status, priority,
+               host, description FROM klk_applications ORDER BY priority DESC;
+       ELSE
+               SELECT application, module, name, status, priority,
+               description FROM klk_applications
+               WHERE klk_applications.host = hostuuid AND enabled = 1
+               ORDER BY priority DESC;
+       END IF;
+
+END$$
+
+
+/*
+       Add or modify new host entry
+
+       host = null to add a new host, guid to edit
+       0 = ok
+       -1 = host not found
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_host_add`$$
+CREATE PROCEDURE `klk_host_add` (
+       INOUT host VARCHAR(40),
+       IN host_name VARCHAR(50),
+       IN cpu_index_typ INTEGER,
+       IN cpu_index_max INTEGER,
+       OUT return_value INTEGER
+)
+BEGIN
+  DECLARE app_id VARCHAR(40);
+  DECLARE app_module VARCHAR(40);
+  DECLARE app_name VARCHAR(50);
+  DECLARE app_enabled TINYINT;
+  DECLARE app_priority INTEGER;
+  DECLARE app_description VARCHAR(255);
+
+  SET host = UUID();
+  -- Insert host record
+  INSERT INTO klk_hosts(host,host_name, cpu_index_typ,
+cpu_index_max) VALUES (host,host_name, cpu_index_typ, cpu_index_max);
+  -- Insert main (mediaserver) application
+  SET app_id = UUID();
+  SET app_name = 'mediaserver@' + host_name;
+  SET app_module = '@MODULE_COMMON_ID@';
+  SET app_enabled = 1; 
+  SET app_priority = 0;   
+  SET app_description = 'Main mediaserver application';
+  INSERT INTO klk_applications(application,module,name,enabled,priority,host,description)
+    VALUES (app_id,app_module,app_name,app_enabled,app_priority,host,app_description);
+  SET return_value = 0;
+END$$
+
+/*
+       delete host
+
+       0 = ok
+       -1 = host not found
+*/
+
+
+DROP PROCEDURE IF EXISTS `klk_host_delete`$$
+CREATE PROCEDURE `klk_host_delete` (
+ IN host VARCHAR(40),
+ OUT return_value INTEGER
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+       DELETE FROM klk_hosts WHERE klk_hosts.host_name = host;
+
+       SET return_value = 0;
+
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_host_list`$$
+CREATE PROCEDURE `klk_host_list` (
+
+)
+BEGIN
+       SELECT host, host_name, cpu_index_typ, cpu_index_max FROM klk_hosts;
+END$$
+
+/*
+       Gets host GUID
+       if the host is not in the DB it will be added
+       @param[in] host_name the host name
+
+*/
+DROP PROCEDURE IF EXISTS `klk_host_get_uuid`$$
+CREATE PROCEDURE `klk_host_get_uuid` (
+       IN host_name VARCHAR(40),
+       OUT host VARCHAR(40)
+)
+BEGIN
+  DECLARE return_value INT;
+  DECLARE CONTINUE HANDLER FOR NOT FOUND CALL
+     klk_host_add(host,host_name,0,0, return_value);
+  SET  TRANSACTION ISOLATION LEVEL READ COMMITTED;
+  START TRANSACTION;
+    SELECT klk_hosts.host INTO host FROM klk_hosts WHERE
+      klk_hosts.host_name = host_name FOR UPDATE;
+  COMMIT;
+END$$
+
+/*
+       Gets host NAME
+       @param[in] host_name the host name
+
+*/
+DROP PROCEDURE IF EXISTS `klk_host_get_name`$$
+CREATE PROCEDURE `klk_host_get_name` (
+       IN host_uuid VARCHAR(40),
+       OUT host_name VARCHAR(40),
+       OUT return_value INT
+)
+BEGIN
+       DECLARE CONTINUE HANDLER FOR NOT FOUND SET return_value = -1;
+       SET return_value = 0;
+       SELECT klk_hosts.host_name INTO host_name FROM klk_hosts WHERE
+       	      klk_hosts.host = host_uuid;
+END$$
+
+
+/*
+
+       Add bus type entry
+       0 = ok
+
+*/
+
+DROP PROCEDURE IF EXISTS `klk_bus_type_add`$$
+CREATE PROCEDURE `klk_bus_type_add` (
+       INOUT bus_type VARCHAR(40),
+       IN description VARCHAR(255),
+       IN bandwidth INTEGER,
+       OUT return_value INTEGER
+)
+BEGIN
+       IF (bus_type IS NULL) THEN
+               SET bus_type = UUID();
+       END IF;
+       INSERT INTO klk_bus_types(bus_type, description,bandwidth) VALUES
+(bus_type,description,bandwidth);
+       SET return_value = 0;
+
+END$$
+
+
+
+
+/*
+       modify bus type entry
+
+       0 = ok
+       -1 = bus type or nothing changed
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_bus_type_update`$$
+CREATE PROCEDURE `klk_bus_type_update` (
+       IN bus_type VARCHAR(40),
+       IN description VARCHAR(255),
+       IN bandwidth INTEGER,
+       OUT return_value INTEGER
+)
+BEGIN
+
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+       UPDATE
+               klk_bus_types
+       SET
+               klk_bus_types.description = description,
+               klk_bus_types.bandwidth = bandwidth
+       WHERE
+               klk_bus_types.bus_type = bus_type;
+
+       SET return_value = 0;
+END;$$
+
+
+
+
+/*
+       delete bus_type entry
+
+       0 = ok
+       -1 = bus_type not found
+*/
+
+
+DROP PROCEDURE IF EXISTS `klk_bus_type_delete`$$
+CREATE PROCEDURE `klk_bus_type_delete` (
+       IN bus_type VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       DELETE FROM klk_bus_types WHERE klk_bus_types.bus_type = bus_type;
+       SET return_value = 0;
+END;$$
+
+
+
+DROP PROCEDURE IF EXISTS`klk_bus_type_list`$$
+CREATE PROCEDURE `klk_bus_type_list` (
+)
+BEGIN
+       SELECT bus_type, description, bandwidth FROM klk_bus_types;
+END$$
+
+
+/*
+       Add resource type entry
+       0 = ok
+*/
+
+DROP PROCEDURE IF EXISTS`klk_resource_type_add`$$
+
+CREATE PROCEDURE `klk_resource_type_add` (
+       INOUT resource_type  VARCHAR(40),
+       IN description VARCHAR(255),
+       IN bandwidth INTEGER,
+       OUT return_value INTEGER
+)
+BEGIN
+       IF (resource_type IS NULL) THEN
+               SET resource_type = UUID();
+       END IF;
+
+       INSERT INTO klk_resource_types(resource_type,description,bandwidth)
+VALUES  (resource_type,description,bandwidth);
+
+       SET return_value = 0;
+END$$
+
+
+
+
+/*
+
+       modify resource type entry
+       0 = ok
+       -1 = bus_type or nothing changed
+*/
+
+DROP PROCEDURE IF EXISTS`klk_resource_type_update`$$
+
+CREATE PROCEDURE `klk_resource_type_update` (
+       INOUT resource_type VARCHAR(40),
+       IN description VARCHAR(255),
+       IN bandwidth INTEGER,
+       OUT return_value INTEGER
+)
+
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       UPDATE
+               klk_resource_types
+       SET
+               klk_resource_types.description = description,
+               klk_resource_types.bandwidth = bandwidth
+       WHERE
+               klk_resource_types.resource_type = resource_type;
+
+       SET return_value = 0;
+END;$$
+
+
+
+
+/*
+
+       delete resource_type entry
+       0 = ok
+       -1 = bus_type not found
+*/
+
+DROP PROCEDURE IF EXISTS `klk_resource_type_delete`$$
+CREATE PROCEDURE `klk_resource_type_delete` (
+       IN bus_type VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       DELETE FROM klk_resource_types WHERE klk_resource_types.resource_type
+= resource_type;
+       SET return_value = 0;
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_resource_type_list`$$
+CREATE PROCEDURE `klk_resource_type_list` ()
+
+BEGIN
+       SELECT resource_type, bandwidth, description FROM klk_resource_types;
+END$$
+
+
+
+/*
+
+       add bus
+       0 = ok
+       -1 = could not add
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_bus_add`$$
+CREATE PROCEDURE `klk_bus_add` (
+       IN host  VARCHAR(40),
+       IN id INT,
+       IN description VARCHAR(255),
+       IN bus_type VARCHAR(40),
+       OUT bus VARCHAR(40),
+       OUT return_value INTEGER
+)
+
+BEGIN
+       SET bus = UUID();
+       INSERT INTO klk_busses(
+               bus,
+               host,
+               description,
+               bus_type,
+               bandwidth)
+       VALUES  (bus,
+               host,
+               description,
+               bus_type,
+               0
+               );
+
+       SET return_value = 0;
+END;$$
+
+/*
+       Gets bus GUID
+       if the bus is not in the DB it will be added
+       @param[in] host_uuid the host UUID
+       @param[in] bus_type
+       @param[in] description - the description to be added
+       if the bus not present
+       @param[out] bus_uuid
+       @param[out] return_value
+*/
+DROP PROCEDURE IF EXISTS `klk_bus_get_uuid`$$
+CREATE PROCEDURE `klk_bus_get_uuid` (
+       IN host_uuid VARCHAR(40),
+       IN id INT,
+       IN bus_type VARCHAR(40),
+       IN description VARCHAR(255),
+       OUT bus_uuid VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+       DECLARE CONTINUE HANDLER FOR NOT FOUND CALL
+klk_bus_add(host_uuid,id,description,bus_type,bus_uuid,return_value);
+       SET return_value = 0;
+       SELECT
+               klk_busses.bus
+       INTO
+               bus_uuid
+       FROM
+               klk_busses
+       WHERE   klk_busses.host = host_uuid AND klk_busses.bus_type=bus_type;
+END$$
+
+
+
+/*
+       change bus entry
+       0 = ok
+       -1 = no write
+*/
+
+DROP PROCEDURE IF EXISTS`klk_bus_update`$$
+
+CREATE PROCEDURE `klk_bus_update` (
+       IN bus  VARCHAR(40),
+       IN description VARCHAR(255),
+       IN bus_type VARCHAR(40),
+       OUT return_value INTEGER
+)
+
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+       UPDATE
+               klk_busses
+       SET
+               klk_busses.description = description,
+               klk_busses.bus_type = bus_type
+       WHERE
+               klk_busses.bus = bus;
+
+       SET return_value = 0;
+END;$$
+
+
+/*
+       delete bus_entry
+       0 = ok
+       -1 = invalid bus
+*/
+
+
+DROP PROCEDURE IF EXISTS `klk_bus_delete`$$
+CREATE PROCEDURE `klk_bus_delete` (
+       IN bus VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       DELETE FROM klk_busses WHERE klk_busses.bus = bus;
+       SET return_value = 0;
+END;$$
+
+
+
+/*
+
+       list busses by host
+
+*/
+DROP PROCEDURE IF EXISTS `klk_bus_list`$$
+CREATE PROCEDURE `klk_bus_list` (
+       IN host VARCHAR(40)
+)
+BEGIN
+       SELECT
+               klk_busses.bus,
+               klk_busses.description,
+               klk_busses.bus_type,
+               klk_busses.bandwidth
+       FROM
+               klk_busses
+       WHERE   klk_busses.host = host;
+END$$
+
+
+
+/*
+       add resource
+       0 = ok
+*/
+DROP PROCEDURE IF EXISTS `klk_resource_add`$$
+CREATE PROCEDURE `klk_resource_add` (
+       IN bus  VARCHAR(40),
+       IN resource_type VARCHAR(40),
+       IN resource_name VARCHAR(50),
+       OUT resource VARCHAR(40),
+       OUT return_value INTEGER
+)
+
+BEGIN
+       SET resource = UUID();
+       INSERT INTO klk_resources(
+               resource,
+               bus,
+               resource_type,
+               bandwidth,
+               enabled,
+               resource_name)
+       VALUES  (resource,
+               bus,
+               resource_type,
+               0,
+               0,
+               resource_name);
+
+       SET return_value = 0;
+END$$
+
+
+
+/*
+       change resource data
+       0 = ok
+       -1 = no write
+*/
+DROP PROCEDURE IF EXISTS `klk_resource_update`$$
+CREATE PROCEDURE `klk_resource_update` (
+       IN resource  VARCHAR(40),
+       IN bus VARCHAR(40),
+       IN resource_type VARCHAR(40),
+       IN bandwidth INTEGER,
+       IN resource_name VARCHAR(50),
+       OUT return_value INTEGER
+)
+
+BEGIN
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       UPDATE
+               klk_resources
+       SET
+               klk_resources.host = host,
+               klk_resources.resource_type = resource_type,
+               klk_resources.bus = bus,
+               klk_resources.bandwidth = bandwidth,
+               klk_resources.resource_name = resource_name
+       WHERE
+               klk_resources.resource = resource;
+       SET return_value = 0;
+
+END$$
+
+
+/*
+       Enable or disable a resource
+       0       ok
+       -1      fail
+       -2      would exceed bandwith limit
+*/
+DROP PROCEDURE IF EXISTS `klk_resource_enable`$$
+CREATE PROCEDURE `klk_resource_enable` (
+       IN resource  VARCHAR(40),
+       IN enabled TINYINT,
+       OUT return_value INT
+)
+
+BEGIN
+       DECLARE enabled_old TINYINT DEFAULT 0;
+       DECLARE bandwidth_resource INTEGER DEFAULT 0;
+       DECLARE bandwidth_resource_max INTEGER DEFAULT 0;
+       DECLARE bandwidth_bus_taken INTEGER DEFAULT 0;
+       DECLARE bandwidth_bus_max INTEGER DEFAULT 0;
+       DECLARE bus VARCHAR(40);
+       DECLARE bus_type VARCHAR(40);
+       DECLARE resource_type VARCHAR(40);
+
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+       SELECT klk_resources.enabled, klk_resources.bus,
+klk_resources.bandwidth, klk_resources.resource_type
+       INTO enabled_old, bus, bandwidth_resource, resource_type FROM
+klk_resources WHERE klk_resources.resource = resource;
+
+       SELECT klk_resource_types.bandwidth INTO bandwidth_resource_max FROM
+klk_resource_types WHERE klk_resource_types.resource_type =
+resource_type;
+       SET return_value = 0;
+       IF (enabled_old <> enabled) THEN
+               SELECT klk_busses.bandwidth, klk_busses.bus_type INTO
+bandwidth_bus_taken, bus_type FROM klk_busses WHERE klk_busses.bus =
+bus;
+               IF (enabled) THEN
+                       SELECT klk_bus_types.bandwidth INTO bandwidth_bus_max FROM
+klk_bus_types WHERE klk_bus_types.bus_type = bus_type;
+                       IF (bandwidth_bus_max >= bandwidth_bus_taken + bandwidth_resource)
+AND (bandwidth_resource_max >= bandwidth_resource) THEN
+                               UPDATE
+                                       klk_busses
+                               SET
+                                       klk_busses.bandwidth = bandwidth_bus_taken + bandwidth_resource
+                               WHERE
+                                       klk_busses.bus = bus;
+
+
+                               UPDATE
+                                       klk_resources
+                               SET
+                                       klk_resources.enabled = 1
+                               WHERE
+                                       klk_resources.resource = resource;
+
+                       ELSE
+
+
+
+                               SET return_value = -2;
+                       END IF;
+
+               ELSE
+                       UPDATE
+                               klk_busses
+                       SET
+                               klk_busses.bandwidth = bandwidth_bus_taken - bandwidth_resource
+                       WHERE
+                               klk_busses.bus = bus;
+
+                       UPDATE
+                               klk_resources
+                       SET
+                               klk_resources.enabled = 0
+                       WHERE
+                               klk_resources.resource = resource;
+
+               END IF;
+       END IF;
+END$$
+
+
+
+
+/*
+       delete resource
+       0 = ok
+       -1 = error
+*/
+
+DROP PROCEDURE IF EXISTS `klk_resource_delete`$$
+CREATE PROCEDURE `klk_resource_delete` (
+       IN resource VARCHAR(40),
+       OUT return_value INTEGER
+)
+BEGIN
+
+       DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+       CALL `klk_resource_enable`(resource, 0, return_value);
+       DELETE FROM klk_resources WHERE klk_resources.resource = resource;
+       SET return_value = 0;
+END$$
+
+
+
+/*
+       list resources by bus
+*/
+DROP PROCEDURE IF EXISTS `klk_resource_list`$$
+CREATE PROCEDURE `klk_resource_list` (
+       IN bus VARCHAR(40)
+)
+BEGIN
+       SELECT
+               klk_resources.resource,
+               klk_resources.resource_type,
+               klk_resources.bandwidth,
+               klk_resources.enabled,
+               klk_resources.resource_name
+       FROM
+               klk_resources
+       WHERE
+               klk_resources.bus = bus;
+END$$
+
+/*
+       list resources by type
+*/
+DROP PROCEDURE IF EXISTS `klk_resource_list_bytype`$$
+CREATE PROCEDURE `klk_resource_list_bytype` (
+       IN resource_type VARCHAR(40)
+)
+BEGIN
+       SELECT
+               klk_resources.resource,
+               klk_resources.resource_type,
+               klk_resources.bandwidth,
+               klk_resources.enabled,
+               klk_resources.resource_name AS name
+       FROM
+               klk_resources
+       WHERE
+               klk_resources.resource_type = resource_type;
+END$$
+
+
+-- Procedure to add a media type
+DROP PROCEDURE IF EXISTS `klk_media_type_add`;$$
+CREATE PROCEDURE `klk_media_type_add` (
+  	INOUT uuid VARCHAR(40),
+	IN name VARCHAR(40),
+	IN description VARCHAR(255),
+  	OUT return_value INT 
+) 
+BEGIN
+	IF uuid IS null THEN
+		SET uuid = UUID();
+	END IF;
+
+	INSERT INTO klk_media_types(uuid, name, 
+	       	    description) 
+	VALUES  (uuid, name, description);
+	        		
+	SET return_value = 0;
+END;$$
+
+-- Retrives a list with possible media type names
+-- used by CLI (see transcode application)
+DROP PROCEDURE IF EXISTS `klk_media_type_list`;$$
+CREATE PROCEDURE `klk_media_type_list` (
+) 
+BEGIN
+  SELECT klk_media_types.name AS name FROM klk_media_types;
+END;$$
+
+-- create bus types
+SET @bus_type_id_pcie1 = 'e1a3df14-be9c-102b-92d7-001d093d7c53';$$
+SET @description = 'PCIe x1';$$
+SET @bandwidth = 240000;$$
+CALL klk_bus_type_add(@bus_type_id_pcie1,@description,@bandwidth, @result);$$
+
+SET @bus_type_id_pcie2 = 'ea632db2-be9c-102b-92d7-001d093d7c53';$$
+SET @description = 'PCIe x2';$$
+SET @bandwidth = 480000;$$
+CALL klk_bus_type_add(@bus_type_id_pcie2,@description,@bandwidth, @result);$$
+
+SET @bus_type_id_pci = '@DEV_TYPE_PCIBUS@';$$
+SET @description = 'PCI BUS 32Bit';$$
+SET @bandwidth = 133000;$$
+CALL klk_bus_type_add(@bus_type_id_pci,@description,@bandwidth, @result);$$
+
+-- create media types
+SET @uuid_auto = '@MEDIA_TYPE_AUTO@';$$
+SET @name = '@MEDIA_TYPE_AUTO_NAME@' ;$$
+SET @description = 'The media type means that the format will be determined automatically';$$
+CALL klk_media_type_add(@uuid_auto, @name, @description, @return_value);$$ 
+
+SET @uuid_empty = '@MEDIA_TYPE_EMPTY@';$$
+SET @name = '@MEDIA_TYPE_EMPTY_NAME@' ;$$
+SET @description = 'The media type means that no need to any recode to be done';$$
+CALL klk_media_type_add(@uuid_empty, @name, @description, @return_value);$$ 
+
+SET @uuid_mpegts = '@MEDIA_TYPE_MPEGTS@';$$
+SET @name = 'mpegts' ;$$
+SET @description = 'Transport stream (TS, TP, MPEG-TS, or M2T) is a communications protocol for audio, video, and data. And equivalently it is also known as a container format that encapsulates packetized elementary streams and other data.';$$
+CALL klk_media_type_add(@uuid_mpegts, @name, @description, @return_value);$$ 
+
+SET @uuid_rtp_mpegts = '@MEDIA_TYPE_RTP_MPEGTS@';$$
+SET @name = '@MEDIA_TYPE_RTP_MPEGTS_NAME@' ;$$
+SET @description = 'RTP with mpegts as payload';$$
+CALL klk_media_type_add(@uuid_rtp_mpegts, @name, @description, @return_value);$$ 
+
+SET @uuid_flv = '@MEDIA_TYPE_FLV@';$$
+SET @name = '@MEDIA_TYPE_FLV_NAME@' ;$$
+SET @description = 'Flash Video is a file format used to deliver video over the Internet using Adobe Flash Player (initially produced by Macromedia) versions 6–10.';$$
+CALL klk_media_type_add(@uuid_flv, @name, @description, @return_value);$$ 
+
+SET @uuid_text = '@MEDIA_TYPE_TXT@';$$
+SET @name = '@MEDIA_TYPE_TXT_NAME@';$$
+SET @description = 'Simple ASCII text';$$
+CALL klk_media_type_add(@uuid_text, @name, @description, @return_value);$$ 
+
+SET @uuid_text = '@MEDIA_TYPE_THEORA@';$$
+SET @name = '@MEDIA_TYPE_THEORA_NAME@';$$
+SET @description = 'From wikipedia: Theora is a free and open lossy video compression format. It is developed by the Xiph.Org Foundation and distributed without licensing fees alongside their other free and open media projects, including the Vorbis audio codec and the Ogg container.';$$
+CALL klk_media_type_add(@uuid_text, @name, @description, @return_value);$$ 
+
+
+DELIMITER ;

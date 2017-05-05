@@ -1,0 +1,157 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+
+
+-- create host
+SET @hostname = 'kalinka_klktest_server';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create antenna and receiver card
+SET @signalsource = '@DVB_SIGNAL_SOURCE_TERRESTRIAL@';$$
+
+SET @description = 'dvb-t sample card';$$
+SET @dvbtype = '@DVB_TYPE_DVB_T@';$$
+SET @enabled = 1;$$
+SET @adapterno = 0;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'testcard';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+
+-- create network conncection
+
+SET @trunk = NULL;$$
+SET @media_type = '@NETWORK_MEDIA_TYPE_100M@';$$
+SET @descricption = 'tv backbone';$$
+CALL klk_network_trunk_add(@trunk, @media_type, @description, @result);$$
+
+
+-- create network card
+SET @node_name = 'eth0';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @nwresourceguid, @result);$$
+
+
+/* SITE / NETWORK SETUP */
+
+SET @name='FAB';$$
+SET @provider=null;$$
+SET @frequency = 522000000;$$ 
+SET @channel_fab = null;$$
+SET @dvb_bandwidth = 0;$$
+SET @code_rate_hp = 9;$$
+SET @code_rate_lp = 1;$$
+SET @modulation = 1;$$
+SET @transmode = 1;$$
+SET @channel_no = 11;$$
+SET @guard = 2;$$
+SET @hierarchy = 0;$$ 
+CALL klk_dvb_t_channel_add(@channel_fab, @signalsource, @name, @provider, 
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no, @guard,
+		@hierarchy, @result);$$
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 3073;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_fab_v, 
+		@channel_fab, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 3074;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_fab_a, @channel_fab, @pidtype, 
+		@pidno, @description, @result); $$
+
+
+SET @name='SUEDWEST BW/RP';$$
+SET @provider=null;$$
+SET @frequency = 522000000;$$
+SET @channel_sued = null;$$
+SET @channel_no = 12;$$
+CALL klk_dvb_t_channel_add(@channel_sued, @signalsource, @name, @provider, 
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no,
+		@guard, @hierarchy, @result);$$
+
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 257;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_sued_v, @channel_sued, 
+		@pidtype, @pidno, @description, @result);$$ 
+
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 258;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_sued_a, 
+		@channel_sued, @pidtype, @pidno, @description, @result);$$
+
+
+-- assign ip address to network card
+
+SET @address = NULL;$$
+SET @ipaddress = '192.168.3.1';$$
+SET @ipmask = '255.255.255.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+-- setup routes 
+
+SET @proto = '@NETWORK_PROTO_UDP@';$$
+
+SET @route1 = NULL;$$
+SET @host1 = '224.0.1.1';$$
+SET @port1 = 4000;$$
+CALL klk_network_route_add(@route1, @address, 
+     @host1, @port1, @proto, @result);$$
+
+
+SET @route2 = NULL;$$
+SET @host2 = '224.0.1.2';$$
+SET @port2 = 4001;$$
+CALL klk_network_route_add(@route2, @address, 
+     @host2, @port2, @proto, @result);$$
+
+
+
+
+/* APPLICATION SETUP */
+
+-- create dvb demo application
+SET @module = '@MODULE_DVBSTREAMER_ID@' ;$$
+SET @app_name = 'dvbtstream';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'dvb-t streaming server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+
+-- create dvb application data
+SET @station_fab = NULL;$$
+CALL klk_app_dvb_station_add (@station_fab, @channel_fab,
+		@route1, 1, 0, @result);$$
+
+SET @station_sued = NULL;$$
+CALL klk_app_dvb_station_add (@station_sued, @channel_sued, 
+		@route2, 1, 1, @result);$$
+
+
+DELIMITER ;

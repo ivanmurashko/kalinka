@@ -1,0 +1,107 @@
+KLK-DVBSTREAMER-MIB DEFINITIONS::= BEGIN
+-- =================================
+-- .1.3.6.1.4.1.31106.6
+-- .iso.org.dod.internet.private.enterprises.klk.dvbstreamer
+
+-- check MIB file:
+--   snmptranslate -M+. -mKLK-DVBSTREAMER-MIB -Tp -IR dvbstreamer
+
+-- getting a OID:
+--   snmptranslate -M+. -mKLK-DVBSTREAMER-MIB -IR  klkStatusTable
+
+-- getting a textual OID:
+--   snmptranslate -On -M+. -mKLK-DVBSTREAMER-MIB -IR klkStatusTable
+
+-- getting a description:
+--   snmptranslate -Td -M+. -mKLK-DVBSTREAMER-MIB -IR klkStatusTable
+
+-- generate a code
+--  env MIBS="+KLK-DVBSTREAMER-MIB" mib2c -c mib2c.iterate.conf klkStatusTable
+-- =================================
+-- =================================
+IMPORTS
+  enterprises                                FROM SNMPv2-SMI,
+  klk                                        FROM KLK-MIB
+  OBJECT-TYPE, MODULE-IDENTITY, Integer32    FROM SNMPv2-SMI
+  DisplayString	                             FROM SNMPv2-TC;
+
+--
+-- A brief description and update information about this mib.
+--
+dvbstreamer MODULE-IDENTITY
+  LAST-UPDATED "200907300000Z"
+  ORGANIZATION "Kalinka Team"
+  CONTACT-INFO "Ivan Murashko
+               "
+  DESCRIPTION  "MIB for Kalinka DVB streamer application module
+               "
+  ::= { klk 6 }
+
+klkStatusTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF klkStatusEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+    "A list of dvbstreamer statuses."
+  ::= { dvbstreamer 1 }
+
+klkStatusEntry OBJECT-TYPE
+  SYNTAX     KLKDVBStreamStatusEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+    "An entry containing information about streaming a TV channel"
+  INDEX { klkIndex }
+  ::= { klkStatusTable 1 }
+
+KLKDVBStreamStatusEntry ::=
+  SEQUENCE {
+    klkIndex            Counter32,
+    klkStation          DisplayString,
+    klkDestinationAddr  DisplayString,
+    klkDataRate         Integer32,
+    klkDevName          DisplayString
+  }
+
+klkIndex OBJECT-TYPE
+  SYNTAX      Counter32
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "The record id"
+  ::= { klkStatusEntry 1 }
+
+klkStation OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "The TV station name in the form ChannelName/ProviderName"
+  ::= { klkStatusEntry 2 }
+
+klkDestinationAddr OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "Output address. Output address (destination address)"
+  ::= { klkStatusEntry 3 }
+
+klkDataRate OBJECT-TYPE
+  SYNTAX      Integer32
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "Data transfer rate in bytes per second"
+  ::= { klkStatusEntry 4 }
+
+klkDevName OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "DVB device name. The device is used for streaming the TV channel"
+  ::= { klkStatusEntry 5 }
+
+
+END

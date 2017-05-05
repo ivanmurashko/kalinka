@@ -1,0 +1,95 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create network card
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+SET @node_name = '@NETDEV_DEFAULT@';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+
+-- assign ip address to network card
+
+SET @address = NULL;$$
+SET @ipaddress = '127.0.0.1';$$
+SET @ipmask = '255.0.0.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+-- setup routes 
+
+SET @proto = '@NETWORK_PROTO_TCPIP@';$$
+
+SET @route_out = NULL;$$
+SET @name_out = '@HTTPSTREAMER_TESTSERVERNAME@';$$
+SET @host_out = '@HTTPSTREAMER_TESTSERVERHOST@';$$
+SET @port_out = @HTTPSTREAMER_TESTSERVERPORT@;$$
+CALL klk_network_route_add(@route_out, @name_out, @address, 
+     @host_out, @port_out, @proto, @result);$$
+
+SET @route_out_add = NULL;$$
+SET @name_out_add = '@HTTPSTREAMER_TESTSERVERNAMEADD@';$$
+SET @host_out_add = '@HTTPSTREAMER_TESTSERVERHOST@';$$
+SET @port_out_add = @HTTPSTREAMER_TESTSERVERPORTADD@;$$
+CALL klk_network_route_add(@route_out_add, @name_out_add, @address, 
+     @host_out_add, @port_out_add, @proto, @result);$$
+
+
+SET @route_in1 = NULL;$$
+SET @name_in1 = '@HTTPSTREAMER_TESTNAME1@';$$
+SET @host_in1 = '@HTTPSTREAMER_TESTHOST1@';$$
+SET @port_in1 = @HTTPSTREAMER_TESTPORT1@;$$
+CALL klk_network_route_add(@route_in1, @name_in1, @address, 
+     @host_in1, @port_in1, @proto, @result);$$
+
+SET @route_in2 = NULL;$$
+SET @name_in2 = '@HTTPSTREAMER_TESTNAME2@';$$
+SET @host_in2 = '@HTTPSTREAMER_TESTHOST2@';$$
+SET @port_in2 = @HTTPSTREAMER_TESTPORT2@;$$
+CALL klk_network_route_add(@route_in2, @name_in2, @address, 
+     @host_in2, @port_in2, @proto, @result);$$
+
+/* APPLICATION SETUP */
+
+-- create http demo application
+SET @application = '@HTTPSTREAMER_TESTAPPLICATION@' ;$$
+SET @module = '@MODULE_HTTP_ID@' ;$$
+SET @app_name = 'httpstream';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'http streaming server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+-- create main application data --
+CALL klk_app_http_streamer_add(@application, @route_out, @return_value);$$
+
+-- assign http routes --
+SET @uuid1 = NULL;$$
+SET @path1 = '@HTTPSTREAMER_TESTPATH1@';$$
+SET @media_type = '@MEDIA_TYPE_TXT@';$$
+CALL klk_app_http_streamer_route_add(@uuid1, @application, @route_in1, @path1,
+     @media_type, @return_value);$$
+
+SET @uuid2 = NULL;$$
+SET @path2 = '@HTTPSTREAMER_TESTPATH2@';$$
+CALL klk_app_http_streamer_route_add(@uuid2, @application, @route_in2, @path2,
+     @media_type, @return_value);$$
+
+
+DELIMITER ;

@@ -1,0 +1,177 @@
+#!/usr/bin/perl -w
+#--------------------------------------------------------------------------
+#  FILE.........: klkupdate_snmp_conf.pl
+#
+#  AUTHOR.......: ipp <ivan.murashko@gmail.com>
+#
+#  DESCRIPTION..: The script updates snmpd.conf file
+#
+#  COPYRIGHT....: Copyright (c) Kalinka team
+#
+#  REVISION.....: $Header: 
+#
+#  HISTORY......: DATE         COMMENT
+#                 -----------  --------------------------------------------
+#                 31-May-2009  Created - ipp
+#--------------------------------------------------------------------------
+
+use strict;
+use XML::Simple;
+
+
+#--------------------------------------------------------------------------
+# Global variables
+#--------------------------------------------------------------------------
+my $INSTALL = "install";
+my $UNINSTALL = "uninstall";
+
+my $input = "@KLK_INSTALL_PREFIX_PATH@/usr/share/kalinka/modules";
+my $output = "/etc/snmp/snmpd.conf";
+my $mode = $INSTALL;
+
+my $simple = XML::Simple->new();
+
+#--------------------------------------------------------------------------
+# The procedure that does installation
+#--------------------------------------------------------------------------
+sub install
+{
+    my ($id, $lib) = @_;
+
+    open(DFILE, $output)
+	or die "Can't open $output\n";
+
+    # Load all data
+    my $new_file  = "";
+    while(<DFILE>) {
+	chomp;
+	my $string = $_;
+
+	if ($string !~ "dlmod[ \t]+$id ")
+	{
+	    $new_file .= "$string\n";
+	}
+	
+    }
+
+    close(DFILE);
+
+    # add at the end
+    $new_file .= "dlmod $id $lib\n";
+
+    # write result
+    open(DFILE1, "> $output.1")
+	or die "Can't open $output.1\n";
+    print DFILE1 $new_file;
+    close(DFILE1);
+    # move it
+    system("/bin/mv -f $output.1 $output");
+}
+
+#--------------------------------------------------------------------------
+# The procedure that does uninstallation
+#--------------------------------------------------------------------------
+sub uninstall
+{
+    my ($id) = @_;
+
+    open(DFILE, $output)
+	or die "Can't open $output\n";
+
+    # Load all data
+    my $new_file  = "";
+    my $was = 0;
+    while(<DFILE>) {
+	chomp;
+	my $string = $_;
+
+	if ($string !~ "dlmod[ \t]+$id")
+	{
+	    $new_file .= "$string\n";
+	}	
+    }
+
+    close(DFILE);
+
+    # write result
+    open(DFILE1, "> $output.1")
+	or die "Can't open $output.1\n";
+    print DFILE1 $new_file;
+    close(DFILE1);
+    # move it
+    system("/bin/mv -f $output.1 $output");
+}
+
+#--------------------------------------------------------------------------
+# The procedure porocesses an input file
+#--------------------------------------------------------------------------
+sub process_config
+{
+    my ($file) = @_;
+
+    my $data = $simple->XMLin($file,  ForceArray => 0, KeyAttr=>[]);
+
+    if (defined ($data->{'snmp'}))
+    {
+ 	my $id = $data->{'snmp'}->{'id'};
+ 	my $lib = $data->{'snmp'}->{'lib_path'};
+	if ($mode eq $INSTALL)
+	{
+	    install($id, $lib);
+	}
+	else
+	{
+	    uninstall($id);
+	}
+    }
+}
+
+#--------------------------------------------------------------------------
+# Main programm
+#--------------------------------------------------------------------------
+
+my $HelpPrompt = "
+-h or --help - Show this page and exit
+-i - Sets input folder with modules settings config files
+-o - Sets output file     
+-m - Sets mode $INSTALL or $UNINSTALL 
+";
+
+
+#---------------------------------------------------------------
+# Parses comandline args
+#
+my $i=0;
+
+foreach (@ARGV) {
+    if ($_ eq '-h' || $_ eq '--help') {
+	print $HelpPrompt; exit;
+    } elsif ($_ eq '-i') {
+	$input = $ARGV[$i + 1];
+    } elsif ($_ eq '-o') {
+	$output = $ARGV[$i + 1];
+    } elsif ($_ eq '-m') {
+	$mode = $ARGV[$i + 1];
+    } 
+    $i++;
+}
+
+if (opendir(DIR, $input))
+{
+    my $file = "";
+    while(defined($file = readdir(DIR)))
+    {
+	if ($file ne "." && $file ne ".." && 
+	    $file !~ ".pl")
+	{
+	    process_config("$input/$file");
+	}
+    }
+    
+    closedir(DIR);
+}
+else
+{
+    print "Cannot open $input: $!\n";
+}
+

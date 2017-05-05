@@ -1,0 +1,242 @@
+#!@PERL@ -w
+#--------------------------------------------------------------------------
+#  FILE.........: klkdbcreate.pl
+#
+#  AUTHOR.......: ipp <ivan.murashko@gmail.com>
+#
+#  DESCRIPTION..: Kalinka DB creation script
+#
+#  COPYRIGHT....: Copyright (c) GNU
+#
+#  REVISION.....: $Header: 
+#
+#  HISTORY......: DATE         COMMENT
+#                 -----------  --------------------------------------------
+#                 30-Aug-2008  Created - ipp
+#                              /home/ipp/works/kalinka/svn/software/src/scripts/install.pl
+#--------------------------------------------------------------------------
+
+
+use strict;
+use DBI;
+use Term::ReadKey;
+
+#--------------------------------------------------------------------------
+# Global variables
+#--------------------------------------------------------------------------
+my $run_force = 0;
+my $run_createdb = 0;
+
+my $install_path = "@KLK_INSTALL_PREFIX_PATH@";
+my $db_config = "$install_path/etc/klk/klk.conf";
+my @sql_scripts = ("server.sql", "adapter.sql", "checkdb.sql", 
+		   "dvb.sql", 		   
+		   "network.sql", "ieee1394.sql", "file.sql", "httpsrc.sql",
+		   "http-streamer.sql", "dvb-streamer.sql", 
+		   "transcode.sql");
+
+#--------------------------------------------------------------------------
+# Usefull routens
+#--------------------------------------------------------------------------
+
+#
+# Gets db connection info from DB config file
+# Params: path_to_db_config and parameter_name
+sub GetDBAddr
+{
+    my ($config,$ctlstr) = @_;
+
+    open(DCONFFILE, $config)
+	or die "Can't open config file: $config\n\n";
+    my $userpass = "";
+    my $hostport = "";
+    my $dbname = "";
+    while(<DCONFFILE>)
+    {
+	chomp;
+	if ($_ =~ m/^\s*$ctlstr\s+([^\s@]+)@([^\s]+)\/([^\s\/]+)/)
+	{
+	    $userpass = $1;
+	    $hostport = $2;
+	    $dbname = $3;
+	}
+    }
+    
+    my $dbuser = "";
+    my $dbpass = "";
+    my $dbhost = "";
+    my $dbport = "";
+    if ($userpass =~ m/([^:]+):([\w]+)/)
+    {
+	$dbuser = $1;
+	$dbpass = $2;
+    }
+    else
+    {
+	$dbuser = $userpass;
+    }
+    
+    if ($hostport =~ m/([^:]+):([\d]+)/)
+    {
+	$dbhost = $1;
+	$dbport = $2;
+    }
+    else
+    {
+	$dbhost = $hostport;
+    }
+
+    my %result = (
+	"dbuser" => $dbuser,
+	"dbpass" => $dbpass,
+	"dbhost" => $dbhost,
+	"dbport" => $dbport,
+	"dbname" => $dbname
+	);
+    #print "$dbuser\n$dbpass\n$dbhost\n$dbport\n$dbname\n";
+    return %result;
+}
+
+#
+# Tests DB empty or not
+#
+sub TestDBEmpty 
+{
+    my ($dbh) = @_;
+    if ($run_force) 
+    {
+	return;
+    }
+    my $sth = $dbh->prepare("SELECT DATABASE();");
+    $sth->execute() or die $dbh->errstr;
+    my ($dbname) = $sth->fetchrow_array();
+    $sth = $dbh->prepare("SHOW TABLES");
+    $sth->execute() or die $dbh->errstr;
+    if ($DBI::rows) 
+    {
+	print "\n\tBase '$dbname' is not empty. Are you sure? (y/N)";
+        my $answ = <STDIN>;
+	if ($answ !~ /^y$/i) 
+	{
+	    exit;
+	}
+    }
+
+}
+
+#
+# Creates kalinka db
+#
+sub CreateDB 
+{
+    my %dbaddr = GetDBAddr($db_config,'Database');
+    my $supass = $dbaddr{"dbpass"};
+    if ($dbaddr{"dbuser"} ne "root")
+    {
+	print "\tEnter mysql supervisor password:";
+	ReadMode('noecho');
+	$supass = ReadLine(0);
+	chomp $supass;
+	ReadMode('normal');
+    }
+
+
+    my $connstr = "dbi:mysql:host=" . $dbaddr{"dbhost"};
+
+    my $dbh = DBI->connect($connstr, "root", $supass)
+	or die "Can't connect to " . $dbaddr{"dbhost"} . ": $DBI::errstr\n";
+    my $q = "DROP DATABASE IF EXISTS " . $dbaddr{"dbname"} ;
+    my $sth = $dbh->prepare($q) or die $dbh->errstr;
+    $sth->execute() or die $dbh->errstr;
+    $q = "CREATE DATABASE IF NOT EXISTS " . $dbaddr{"dbname"}  . 
+	" DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci";
+    $sth = $dbh->prepare($q) or die $dbh->errstr;
+    $sth->execute() or die $dbh->errstr;
+
+#     # FIXME!!! add grant host option
+#     my @GrantHosts = ("localhost");
+
+#     foreach my $GrantHost(@GrantHosts) 
+#     {
+# 	$q = "GRANT ALL ON " . $dbaddr{"dbname"}
+# 	. ".* TO " . $dbaddr{"dbuser"} . "@" . $GrantHost
+# 	    . " IDENTIFIED BY '" . $dbaddr{"dbpass"} . "';";
+# 	$sth = $dbh->prepare($q) or die $dbh->errstr;
+# 	$sth->execute()	or die $dbh->errstr;
+#     }	
+
+}
+
+#--------------------------------------------------------------------------
+# Main programm
+#--------------------------------------------------------------------------
+
+my $HelpPrompt = "
+-h or --help - Show this page and exit
+-f  - Force drop & recreate tables
+-c - Enable create databases (getting values from '$db_config')     
+-a - alternative config file 
+";
+
+
+#---------------------------------------------------------------
+# Parses comandline args
+#
+my $i=0;
+
+foreach (@ARGV) {
+    if ($_ eq '-h' || $_ eq '--help') {
+	print $HelpPrompt; exit;
+    } elsif ($_ eq '-c') {
+	$run_createdb = 1;
+    } elsif ($_ eq '-f') {
+	$run_force = 1;
+    } elsif ($_ eq '-a') {
+	$db_config = $ARGV[$i + 1];
+    } 
+    $i++;
+}
+
+my %dbaddr = GetDBAddr($db_config,'Database');
+
+#--------------------------------------------------
+print "Create database:\n";
+#--------------------------------------------------
+if ($run_createdb) {    
+    CreateDB();
+    print "\nThe DB was created\n";
+} else {
+    print "PASSED\n";
+}
+
+#--------------------------------------------------
+print "Execute SQL creation scripts:\n";
+#--------------------------------------------------
+# Connection with main DB
+my $dbh = DBI->connect("dbi:mysql:database=$dbaddr{\"dbname\"};host=$dbaddr{\"dbhost\"}",
+		       $dbaddr{"dbuser"}, $dbaddr{"dbpass"})
+    or die "Can't connect to Kalinka DB{\"dbname\"}: $DBI::errstr\n";
+
+TestDBEmpty($dbh);
+foreach(@sql_scripts) 
+{
+    my $sql_script = $_;
+    print "\t$sql_script ... ";
+    my $db_path = "$install_path/usr/share/kalinka/sql/$sql_script";
+	if ( -e $db_path)
+	{
+		if (!system (("@MYSQL_UTIL@ -h $dbaddr{\"dbhost\"} -p$dbaddr{\"dbpass\"} -u $dbaddr{\"dbuser\"} $dbaddr{\"dbname\"} -e \"\\. $db_path\" >/dev/null"))) 
+		{
+			print "OK\n";
+		} 
+		else 
+		{
+			die "Execution failed";
+		}
+	}
+	else
+	{
+		print "does not exist\n";
+	}
+}
+$dbh->disconnect();

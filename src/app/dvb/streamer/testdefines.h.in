@@ -1,0 +1,111 @@
+/**
+   @file testdefines.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2009/07/05 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLKDVBSTREAMER_TESTDEFINES_H
+#define KLKDVBSTREAMER_TESTDEFINES_H
+
+#include <string>
+
+namespace klk
+{
+    namespace dvb
+    {
+        namespace stream
+        {
+            /** @addtogroup grDVBStreamerTest
+
+                Test defines
+
+                @{
+            */
+
+            /**
+               Test route1 name
+            */
+            const std::string TESTROUTE1 = "@DVBSTREAMER_TEST_ROUTE1@";
+
+            /**
+               Test route1 addr in SNMP
+            */
+            const std::string TESTROUTEADDR1 =
+                "@DVBSTREAMER_TEST_ROUTEADDR1@:"
+                "@DVBSTREAMER_TEST_ROUTEPORT1@";
+
+            /**
+               Test route2 name
+            */
+            const std::string TESTROUTE2 = "@DVBSTREAMER_TEST_ROUTE2@";
+
+            /**
+               Test route2 addr in SNMP
+            */
+            const std::string TESTROUTEADDR2 =
+                "@DVBSTREAMER_TEST_ROUTEADDR2@:"
+                "@DVBSTREAMER_TEST_ROUTEPORT2@";
+
+            /**
+               Test route3 name
+            */
+            const std::string TESTROUTE3 = "@DVBSTREAMER_TEST_ROUTE3@";
+
+
+            /**
+               Test station1 name
+            */
+            const std::string TESTSTATION1 =
+                "@DVBSTREAMER_TEST_CHANNEL1@/"
+                "@DVBSTREAMER_TEST_PROVIDER1@";
+
+            /**
+               Test station2 name
+            */
+            const std::string TESTSTATION2 =
+                "@DVBSTREAMER_TEST_CHANNEL2@/"
+                "@DVBSTREAMER_TEST_PROVIDER2@";
+
+            /**
+               Test station3 name
+            */
+            const std::string TESTSTATION3 =
+                "@DVBSTREAMER_TEST_CHANNEL3@/"
+                "@DVBSTREAMER_TEST_PROVIDER3@";
+
+            /** @} */
+        }
+    }
+}
+
+#endif //KLKDVBSTREAMER_TESTDEFINES_H

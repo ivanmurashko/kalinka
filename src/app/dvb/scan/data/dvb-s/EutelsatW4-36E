@@ -1,0 +1,36 @@
+# EUTELSAT W4 36E
+# freq pol sr fec
+
+# Ru TV
+S 12207000 V 27500000 3/4
+
+# DVB-S (QPSK)	
+# Tricolor RSCC Connecto
+# A-ONE 7TV etc.
+S 12303000 H 27500000 3/4 
+
+# TNV - Tatarstan Novy Vek140  
+S 12174000 H  4340000 3/4
+
+# DVB-S (QPSK)	
+# Tricolor RSCC Connecto
+# A-ONE 7TV etc.
+S 11304000 H 27500000 3/4 
+
+# DVB-S (QPSK)	
+# Poverkhnost Biz-TV Ukraine,
+# CP.info,
+# O2 TV,
+# Pershiy avtomobil'niy,
+# RU TV,
+# Shanson TV,
+# Sport 1 (Ukraine) ($),
+# Sport 2 (Ukraine) ($),
+# Transmit ($),
+# TRK Football ($),
+# TV3 (Russia) +0,
+# TVi ($)
+S 11727000 H 27500000 3/4 
+
+
+

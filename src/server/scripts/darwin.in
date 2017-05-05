@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Startup script for Kalinka mediaserver on Mac OS X (Datwin) platform
+#
+# author ipp (Ivan Murashko) <ivan.murashko@gmail.com> 
+# created 2010/04/24 by ipp
+
+. /etc/rc.common
+
+DAEMON=@KLK_DAEMON_PATH@   # Introduce the server's location here
+NAME=klkd                  # Introduce the short server's name here
+PIDFILE=@KLK_LOCK_FILE@
+DAEMON_ARGS="-D"
+
+StartService ()
+{
+	echo "Start Kalinka media server service"
+
+	${DAEMON} ${DAEMON_ARGS}
+}
+
+StopService ()
+{
+	echo "Stop Kalinka media server"
+
+	DAEMON_PID=`cat ${PIDFILE}`
+
+	kill ${DAEMON_PID}
+	if [ $? -ne 0 ]; then
+		echo "Cannot kill Kalinka media server"
+	fi
+}
+
+RestartService ()
+{
+	echo "Restart Kalinka media server"
+	StopService
+	StartService
+}
+
+RunService "$1"

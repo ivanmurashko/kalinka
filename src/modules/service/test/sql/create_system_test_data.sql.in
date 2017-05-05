@@ -1,0 +1,74 @@
+DELIMITER $$
+
+/* The test data for Service module test 
+   It creates 2 hosts with 3 applications
+
+   First 3 applications are in the first host and the last one in the another
+*/
+
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid1 = null;$$
+call klk_host_get_uuid(@hostname, @hostguid1);$$
+
+SET @hostname = 'testserver1';$$
+SET @hostguid2 = null;$$
+call klk_host_get_uuid(@hostname, @hostguid2);$$
+
+/* APPLICATION SETUP */
+
+-- create test apps
+SET @application = '@MODULE_SRV_TEST_APP1_ID@' ;$$
+SET @app_name = '@MODULE_SRV_TEST_APP1_NAME@';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 1';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+SET @application = 'help_module_testapp_failed' ;$$
+SET @app_name = 'test_failed';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test failed application startup';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+SET @application = '@MODULE_SRV_TEST_APP2_ID@' ;$$
+SET @app_name = '@MODULE_SRV_TEST_APP2_NAME@';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 2';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+SET @application = '@MODULE_SRV_TEST_APP3_ID@' ;$$
+SET @app_name = '@MODULE_SRV_TEST_APP3_NAME@';$$
+SET @enabled = 0;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 3';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+SET @application = 'help_module_testapp2anotherserver' ;$$
+SET @app_name = 'test2anotherserver';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 2';$$
+CALL klk_application_add(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid2, @description, @return_value);$$ 
+
+
+DELIMITER ;

@@ -1,0 +1,14 @@
+{% extends "light/watch.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="player-container">
+    <object type="application/x-shockwave-flash" data="/iface/media/uppod.swf" height="480" width="640">
+        <param name="allowFullScreen" value="true" />
+        <param name="allowScriptAccess" value="always" />
+        <param name="wmode" value="transparent" />
+        <param name="movie" value="/iface/media/uppod.swf" />
+        <param name="FlashVars" value="way={{ link|escape }}&amp;st=62AEcsal1C0V9vA1X1kQ3Q3Q3Q31kl1k0nTWwjG3NkZbSal1SQoF3wmRndMJzC5b7uYl1CiMkbk1ktj1TamQ3h9sQoF3wkbkafztj1nzC5keuOIc9kaJ1kOkZ2MJzCH5kev0ktj1vL2NAXzC5Ttj1692Mt7T30cLWNkbk1fp53Q3pvNXZvw6YW6wfHB5czsNcYB5Nj63Q3F30cTCwX7pvQXZm0VT2UhTdd0X1sNkTWwWTSAQopBwnQB56L2MrXTSUhTd0yp2wV49B5LFdwbzkOkayBwnzBGDRWNkbk71npdQVQv1l1Swbkbk16LWwDzkOk54dGIF31XAuYWt8j1mzC5k1kOk1J70vFdG6I2NDzfUrY&amp;pic=http://&amp;autoplay=0&amp;tools=2&amp;skin=black&amp;volume=70&amp;comment={{ title|escape }}" />
+    </object>
+</div>
+{% endblock %}

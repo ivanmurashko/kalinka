@@ -1,0 +1,118 @@
+/**
+   @file testdefines.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2009/03/23 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLKFILE_TESTDEFINES_H
+#define KLKFILE_TESTDEFINES_H
+
+#include <sys/types.h>
+
+#include <string>
+
+namespace klk
+{
+    namespace file
+    {
+        /** @defgroup grFileTest Unit test for file module
+
+            Unit test for file module
+            At our test we have 2 klk::file::type::REGULAR files and one
+            klk::file::type::FOLDER
+
+            @ingroup grFile
+            @{
+        */
+
+        /**
+           Test uuid for 1st file
+        */
+        const std::string TESTUUID1 = "@FILE_TEST_UUID1@";
+
+        /**
+           Test name for 1st file
+        */
+        const std::string TESTNAME1 = "@FILE_TEST_NAME1@";
+
+        /**
+           Test path for 1st file
+        */
+        const std::string TESTPATH1 = "@FILE_TEST_PATH1@";
+
+        /**
+           Test uuid for 2d file
+        */
+        const std::string TESTUUID2 = "@FILE_TEST_UUID2@";
+
+        /**
+           Test name for 2d file
+        */
+        const std::string TESTNAME2 = "@FILE_TEST_NAME2@";
+
+        /**
+           Test path for 2d file
+        */
+        const std::string TESTPATH2 = "@FILE_TEST_PATH2@";
+
+        /**
+           Test uuid for folder
+        */
+        const std::string TESTUUID3 = "@FILE_TEST_UUID3@";
+
+        /**
+           Test name for 3d file (folder)
+        */
+        const std::string TESTNAME3 = "@FILE_TEST_NAME3@";
+
+        /**
+           Test path for 3d file (folder)
+        */
+        const std::string TESTPATH3 = "@FILE_TEST_PATH3@";
+
+        /**
+           Name for klk::file::type::REGULAR file source type
+        */
+        const std::string TESTREGULAR = "@FILE_TYPE_REGULAR_NAME@";
+
+        /**
+           Name for klk::file::type::FOLDER file source type
+        */
+        const std::string TESTFOLDER = "@FILE_TYPE_FOLDER_NAME@";
+
+        /** @} */
+
+    }
+}
+
+#endif //KLKFILE_TESTDEFINES_H

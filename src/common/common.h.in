@@ -1,0 +1,115 @@
+/**
+   @file common.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2010/08/28 created by ipp (Ivan Murashko)
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLK_COMMON_H
+#define KLK_COMMON_H
+
+/** @defgroup grCommon Common procedures and defines for
+    Kalinka Mediaserver
+    @{
+
+    You can find here a complete description for all
+    common defines and functions that
+    are used at each part of mediaserver
+*/
+
+/** @def KLKFREE
+    @brief Frees the allocated memory
+
+    Used for frees memory that was allocated simple data
+
+    Used in C code
+
+    @see @ref KLKDELETEARRAY @ref KLKDELETE
+*/
+#define KLKFREE(x) {if((x) != NULL){free (x); (x) = NULL;}}
+
+/** @def KLKDELETE
+    @brief Frees the allocated memory
+
+    Used for frees memory that was allocated simple data
+
+    Used in C++ code
+
+    @see @ref KLKDELETEARRAY
+*/
+#define KLKDELETE(x) {if((x) != NULL){delete (x); (x) = NULL;}}
+
+/**
+   @def ISEMPTY
+   @brief ISEMPTY is necessary for
+   ISEMPTY is necessary for
+*/
+#define ISEMPTY(s) (!(s) || *(s) == 0)
+
+#ifdef __cplusplus
+
+#include <string>
+
+namespace klk
+{
+    /** @addtogroup grCommon
+        @{
+    */
+
+    /**
+       Main (common) module id
+
+       @note the module identifies the main (mediaserver) application
+       among other applications
+    */
+    const std::string MODULE_COMMON_ID = "@MODULE_COMMON_ID@";
+
+    /**
+       @brief Usage string for utilities help
+
+       Usage string for utilities help
+   */
+    const std::string USAGE_STR = "Usage: \t-h,-? \t\t This page";
+
+    /**
+       @brief Copyright for the Kalinka
+
+       Copyright string
+    */
+    const std::string COPYRIGHT_STR = "Kalinka - Copyright 2007 - 2010";
+
+    /** @} */
+}
+#endif //__cplusplus
+
+/** @} */
+
+
+#endif //KLK_COMMON_H

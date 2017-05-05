@@ -1,0 +1,19 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- test data
+SET @uuid='@HTTPSRC_TEST_UUID1@';$$
+call klk_httpsrc_add(@uuid, '@HTTPSRC_TEST_NAME1@',
+     '@HTTPSRC_TEST_ADDR1@', '@HTTPSRC_TEST_LOGIN1@', 
+	 '@HTTPSRC_TEST_PWD1@', 'test description for camera 1', @return_value);$$
+SET @uuid='@HTTPSRC_TEST_UUID2@';$$
+call klk_httpsrc_add(@uuid, '@HTTPSRC_TEST_NAME2@',
+     '@HTTPSRC_TEST_ADDR2@', '@HTTPSRC_TEST_LOGIN2@', 
+	 '@HTTPSRC_TEST_PWD2@', 'test description for camera 2', @return_value);$$
+DELIMITER ;

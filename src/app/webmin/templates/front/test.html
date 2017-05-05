@@ -1,0 +1,65 @@
+{% extends "front/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Test page" %} : Uppod{% endblock %}
+
+{% block branding %}{% trans "Testing" %} Uppod{% endblock %}
+
+{% block extrahead %}
+<!-- MooTools -->
+<script type="text/javascript" src="/iface/media/js/mootools-core.js"></script>
+<script type="text/javascript" src="/iface/media/js/mootools-more.js"></script>
+
+<!-- SWFObject -->
+<script type="text/javascript" src="/iface/media/js/swfobject.js"></script>
+
+<script type="text/javascript" src="/iface/media/js/uppod.js"></script>
+
+<script type="text/javascript" src="/iface/media/js/front.js"></script>
+{% endblock %}
+
+{% block content %}
+<div id="playlist">
+    <h3>Aviabled channels
+        {% ifequal palyer 'vlc' %}<a id="get-http-playlist" class="toggler" href="{% url front.views.ajax_playlist proto="http"%}">http</a>|
+        <a id="get-udp-playlist" class="toggler" href="{% url front.views.ajax_playlist proto="udp" %}">udp</a>{% endifequal %}
+    </h3>
+    <ul id="playlist">
+        {% for track in playlist.tracks %}
+            <li><a class="channel toggler" href="{{ track.link }}">{{ track.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div id="player-container">
+<object id="uplayer" name="uplayer" type="application/x-shockwave-flash" data="/iface/media/uflvplayer_500x375.swf" height="480" width="640">
+    <param name="allowFullScreen" value="true" />
+    <param name="allowScriptAccess" value="always" />
+    <param name="movie" value="/iface/media/uflvplayer_500x375.swf" />
+    <param name="FlashVars" value="uid=uplayer&amp;way=http://beethoven.lan.spbgasu.ru:8080/cameralo&amp;swf=/iface/media/uflvplayer_500x375.swf&amp;w=640&amp;h=480&amp;pic=http://ya.ru/logo.png&amp;autoplay=0&amp;tools=2&amp;skin=white&amp;volume=70&amp;q=param_q&amp;comment=param_comment" />
+</object>   
+</div>
+
+<script type="text/javascript">
+    //var flashvars = {
+    //                'uid': "player",
+    //                'file': "http://beethoven.lan.spbgasu.ru:8080/cameralo",
+    //                };
+    //var params = {bgcolor:"#ffffff",
+    //              allowFullScreen:"true",
+    //              allowScriptAccess:"always",
+    //              wmode:"transparent"};
+    //var attributes = {id:"player"};
+    //new swfobject.embedSWF("/iface/media/uflvplayer_500x375.swf", "player", "500", "375", "9.0.115", false, flashvars, params, attributes);
+</script>
+
+<!--
+<object type="application/x-shockwave-flash" data="/iface/media/uflvplayer_500x375.swf" height="480" width="640">
+    <param name="bgcolor" value="#FFFFFF" />
+    <param name="allowFullScreen" value="true" />
+    <param name="allowScriptAccess" value="always" />
+    <param name="movie" value="/iface/media/uflvplayer_500x375.swf" />
+    <param name="FlashVars" value="way=http://beethoven.lan.spbgasu.ru:8080/cameralo&amp;swf=/iface/media/uflvplayer_500x375.swf&amp;w=400&amp;h=300&amp;pic=http://&amp;autoplay=0&amp;tools=2&amp;skin=white&amp;volume=70&amp;q=&amp;comment=" />
+</object>-->
+
+{% endblock %}

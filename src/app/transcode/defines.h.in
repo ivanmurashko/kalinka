@@ -1,0 +1,230 @@
+/**
+   @file defines.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2009/03/19 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLKTRANS_DEFINES_H
+#define KLKTRANS_DEFINES_H
+
+#include <string>
+
+namespace klk
+{
+    namespace trans
+    {
+        /** @addtogroup grTrans
+            @{
+        */
+        /**
+           Module ID
+        */
+        const std::string MODID = "@MODULE_TRANS_ID@";
+
+        /**
+           Module's name
+        */
+        const std::string MODNAME = "@MODULE_TRANS_NAME@";
+
+        /// Update db sync message
+        const std::string UPDATEDB_MESSAGE = "@TRANS_DBUPDATE_MESSAGE@";
+
+        /**
+           Scheduled playback update interval (in seconds)
+        */
+#ifndef DEBUG
+        const time_t SCHEDULE_INTERVAL = 60;
+#else
+        const time_t SCHEDULE_INTERVAL = 10;
+#endif // DEBUG
+
+        namespace type
+        {
+            /** @defgroup grTransSource Transcode application sources
+
+                @brief Source types
+
+                There are several types of sources that are supported by transcode application
+
+                @ingroup grTrans
+
+                @{
+            */
+
+            /**
+               File source type UUID
+            */
+            const std::string FILE = "@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@";
+
+            /**
+               Network source type UUID
+            */
+            const std::string NET = "@MODULE_TRANS_SOURCE_TYPE_NET_UUID@";
+
+            /**
+               External HTTP source type UUID
+            */
+            const std::string HTTPSRC = "@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_UUID@";
+
+            /**
+               IEEE1394 aka FireWire source type
+
+               The MiniDV cameras type
+            */
+            const std::string FW = "@MODULE_TRANS_SOURCE_TYPE_DV_UUID@";
+
+            /** @} */
+        }
+
+        namespace schedule
+        {
+            /** @addtogroup grTransScheduledPlayback
+                @{
+            */
+
+            /**
+               Schedule type ones
+
+               Means: Run once, at startup.
+            */
+            const std::string REBOOT = "@MODULE_TRANS_SCHEDULE_REBOOT@";
+
+            /**
+               Schedule type always
+
+               Means: start everytime when possible, "* * * * *".
+
+               @note missing in crontab(5)
+            */
+            const std::string ALWAYS = "@MODULE_TRANS_SCHEDULE_ALWAYS@";
+
+            /**
+               Schedule type yearly
+
+               Means:   Run once a year, "0 0 1 1 *".
+            */
+            const std::string YEARLY = "@MODULE_TRANS_SCHEDULE_YEARLY@";
+
+            /**
+               Schedule type annually
+
+               Means:   Run once a year, "0 0 1 1 *".
+            */
+            const std::string ANNUALLY = "@MODULE_TRANS_SCHEDULE_ANNUALLY@";
+
+            /**
+               Schedule type monthly
+
+               Means:  Run once a month, "0 0 1 * *".
+            */
+            const std::string MONTHLY = "@MODULE_TRANS_SCHEDULE_MONTHLY@";
+
+            /**
+               Schedule type weekly
+
+               Means:  Run once a week, "0 0 * * 0".
+            */
+            const std::string WEEKLY = "@MODULE_TRANS_SCHEDULE_WEEKLY@";
+
+            /**
+               Schedule type daily
+
+               Means:   Run once a day, "0 0 * * *".
+            */
+            const std::string DAILY = "@MODULE_TRANS_SCHEDULE_DAILY@";
+
+            /**
+               Schedule type midnight
+
+               Means:   Run once a day, "0 0 * * *".
+            */
+            const std::string MIDNIGHT = "@MODULE_TRANS_SCHEDULE_MIDNIGHT@";
+
+            /**
+               Schedule type hourly
+
+               Means:  Run once an hour, "0 * * * *".
+            */
+            const std::string HOURLY = "@MODULE_TRANS_SCHEDULE_HOURLY@";
+
+            /** @} */
+        }
+
+        /**
+           SNMP id
+
+           @ingroup grTransSNMP
+        */
+        const std::string SNMPID = "@TRANSCODE_SNMPLIBNAME@";
+        /** @} */
+
+        namespace quality
+        {
+            namespace video
+            {
+                /** @addtogroup grTransQuality
+                    @{
+                */
+
+                /// Default size
+                const std::string SIZE_DEFAULT = "@MODULE_TRANS_VSIZE_DEFAULT_UUID@";
+
+                /// Size 320x240
+                const std::string SIZE_320_240 = "@MODULE_TRANS_VSIZE_320_240_UUID@";
+
+                /// Size 640x480
+                const std::string SIZE_640_480 = "@MODULE_TRANS_VSIZE_640_480_UUID@";
+
+                /// Size 720x576 PAL standard
+                const std::string SIZE_720_576 = "@MODULE_TRANS_VSIZE_720_576_UUID@";
+
+                /// Low video quality (specific for each encoder GST plugin)
+                const std::string LOW =
+                    "@MODULE_TRANS_VQUALITY_LOW_UUID@";
+
+                /// Medium video quality (specific for each encoder GST plugin)
+                const std::string MEDIUM =
+                    "@MODULE_TRANS_VQUALITY_MEDIUM_UUID@";
+
+                /// High video quality (specific for each encoder GST plugin)
+                const std::string HIGH =
+                    "@MODULE_TRANS_VQUALITY_HIGH_UUID@";
+
+                /** @} */
+            }
+        }
+
+    }
+}
+
+#endif //KLKTRANS_DEFINES_H

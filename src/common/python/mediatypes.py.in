@@ -1,0 +1,108 @@
+"""@package mediatypes.py
+   @file mediatypes.py.in
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2010 Kalinka Team
+
+   This file is part of Kalinka mediaserver.
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2010/12/05 created by ipp (Ivan Murashko)
+"""
+
+"""
+Empty media type
+"""
+EMPTY='@MEDIA_TYPE_EMPTY@'
+
+"""
+Name for empty media type
+"""
+EMPTY_NAME='@MEDIA_TYPE_EMPTY_NAME@'
+
+"""
+MpegTS media type container
+
+Transport stream (TS, TP, MPEG-TS, or M2T) is a communications protocol 
+for audio, video, and data. And equivalently it is also known as a container 
+format that encapsulates packetized elementary streams and other data.
+"""
+MPEGTS='@MEDIA_TYPE_MPEGTS@'
+
+"""
+Name for mpegts media type
+"""
+MPEGTS_NAME='@MEDIA_TYPE_MPEGTS_NAME@'
+
+"""
+FLV container
+"""
+FLV='@MEDIA_TYPE_FLV@'
+
+"""
+Name for flv media type
+"""
+FLV_NAME='@MEDIA_TYPE_FLV_NAME@'
+
+
+"""
+TXT container
+"""
+TXT='@MEDIA_TYPE_TXT@'
+
+"""
+Name for flv media type
+"""
+TXT_NAME='@MEDIA_TYPE_TXT_NAME@'
+
+
+"""
+OGG container
+"""
+OGG='@MEDIA_TYPE_THEORA@'
+
+"""
+OGG container name
+"""
+OGG_NAME='@MEDIA_TYPE_THEORA_NAME@'
+
+"""
+RTP mpegts payload
+"""
+RTP_MPEGTS='@MEDIA_TYPE_RTP_MPEGTS@'
+
+"""
+RTP mpegts payload name
+"""
+RTP_MPEGTS_NAME='@MEDIA_TYPE_RTP_MPEGTS_NAME@'
+
+"""
+Auto payload
+"""
+AUTO='@MEDIA_TYPE_AUTO@'
+
+"""
+Auto payload name
+"""
+AUTO_NAME='@MEDIA_TYPE_AUTO_NAME@'

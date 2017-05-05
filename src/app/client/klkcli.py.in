@@ -1,0 +1,145 @@
+#!/usr/bin/env python
+
+"""CLI client for KLK"""
+
+import sys
+import cmd
+import os
+import time
+
+# the built klk module path
+sys.path.insert(1, '@KLK_PYTHON_PREFIX_PATH@')
+
+import klk
+import klk.common
+import klk.paths
+import klk.msg
+import klk.climsg
+
+
+class CLI(cmd.Cmd):
+    """ Kalinka mediaserver CLI client
+    """
+    
+    def __init__(self, *args, **kwargs):
+        """ Several initial params
+        """
+        self.intro   = '\nWelcome to Kalinka Command-Line-Interface\n' + \
+            'powered by Python\n\ntype \'help\' to show aviabled commands\n'
+        self.prompt  = 'cli> '
+        self.version = klk.VERSION
+
+        cmd.Cmd.__init__(self, *args, **kwargs)
+
+        # init factory and load default config
+        klk.Factory().config.load()
+
+        # look for all possible children
+        modlist = klk.common.getModules()
+        for module_name in modlist:
+            try:
+                instance = __import__(module_name, globals(), locals(), ['*'], -1)
+                if instance:
+                    importFunc = getattr(instance, 'importCLI')
+                    if importFunc:
+                        self.add_command(importFunc(self))
+            except (ImportError, AttributeError):
+                    #ignore import and attribute errors here
+                    pass
+
+    def do_exit(self, *args):
+        """ Exit the CLI
+        """
+        return True
+
+    def do_version(self, *args):
+        """Display version info
+        """
+        print self.version
+
+    def do_start(self, line):
+        """Starts mediaserver
+        """
+        if self.is_connected():
+            print 'The mediaserver has been already started'
+            return
+
+        os.system('%s/init.d/klk start' % klk.paths.ETC)
+        start_time = os.times()[4]
+        duration = 5.0
+        # wait startup in 5 sec
+        while not self.is_connected() or os.times()[4] - start_time < duration:
+            # wait for a second
+            time.sleep(1)
+        if self.is_connected():
+            print 'The mediaserver has been started'
+        else:
+            print 'Could not start mediaserver in %f sec' % duration
+
+    def do_stop(self, line):
+        """Stops medaiserver
+        """
+        if not self.is_connected():
+            print 'The mediaserver has not been started'
+            return
+
+        os.system('%s/init.d/klk stop' % klk.paths.ETC)
+        if self.is_connected():
+            print 'The mediaserver stop has been failed'
+        else:
+            print 'The mediaserver has been stopped'
+
+    def do_status(self, line):
+        """Prints the current mediaserver status
+        """
+        factory = klk.Factory()
+        server = factory.servers[factory.config.server]
+        if not self.is_connected():
+            print 'The mediaserver \'%s\' is not started' % factory.config.server
+            return
+
+        adapter = server.modules[klk.adapter.NAME]
+        args = dict()
+        args[klk.climsg.TYPE] = klk.climsg.TYPEPROCESS
+        args[klk.climsg.PARAMS] = list()
+        msg = adapter.sendSyncMessage(klk.service.UUID, klk.service.INFO_COMMAND_ID, \
+                                          args)
+
+        # retrive status info
+        try:
+            if msg.mValues[klk.msg.STATUS] == klk.msg.OK:
+                print msg.mValues[klk.msg.CLIRESULT]
+            else:
+                print msg.mValues[klk.msg.ERROR]            
+        except Exception, e:
+            print 'Exception: %s', str(e)
+
+    def is_connected(self):
+        """ Checks is the default mediaserver (that is set at the config)
+        is connected or not
+
+        @return 
+        - True - connected
+        - False - not connected
+        """
+        factory = klk.Factory()
+        server = factory.servers[factory.config.server]
+        adapter = server.modules[klk.adapter.NAME]
+        return adapter.checkConnection(klk.adapter.MODULE_COMMON_ID)        
+
+
+    def add_command(self, child):
+        """ Add the given command into the lexicon of all commands.
+        """
+
+        do_name = 'do_%s' % (child.name,)
+        do_cmd = child.cmdloop
+        setattr(self.__class__, do_name, do_cmd)
+
+        help_child_cmd = child.printhelp_cmd
+        help_child_name = 'help_%s' % (child.name,)
+        setattr(self.__class__, help_child_name, help_child_cmd)
+            
+if __name__ == '__main__':
+    cli = CLI()
+    cli.cmdloop()

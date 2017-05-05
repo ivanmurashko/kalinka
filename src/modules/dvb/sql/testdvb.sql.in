@@ -1,0 +1,194 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+/*
+ We have 2 dvb-t card here and 4 channels
+ 2 on one card and one of the last two ones on the second card
+*/
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = '@DEV_TYPE_PCIBUS@';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+
+-- create antenna and receiver card
+SET @signalsource = '@DVB_SIGNAL_SOURCE_TERRESTRIAL@';$$
+
+SET @description = 'dvb-t sample card 1';$$
+SET @dvbtype = '@DVB_TYPE_DVB_T@';$$
+SET @enabled = 1;$$
+SET @adapterno = 0;$$
+SET @frontendno = 0;$$
+SET @resource_name = '@TESTDVB_CARD1_NAME@';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+SET @description = 'dvb-t sample card 2';$$
+SET @dvbtype = '@DVB_TYPE_DVB_T@';$$
+SET @enabled = 1;$$
+SET @adapterno = 1;$$
+SET @frontendno = 0;$$
+SET @resource_name = '@TESTDVB_CARD2_NAME@';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid,
+		@result); $$
+
+/* SITE / NETWORK SETUP */
+
+SET @name='@TESTDVB_CHANNEL11_NAME@';$$
+SET @provider=null;$$
+SET @frequency = @TESTDVB_FREQUENCY1@;$$ 
+SET @channel_11 = '@TESTDVB_CHANNEL11_ID@';$$
+SET @dvb_bandwidth = 0;$$
+SET @code_rate_hp = 9;$$
+SET @code_rate_lp = 1;$$
+SET @modulation = 1;$$
+SET @transmode = 1;$$
+SET @channel_no = 11;$$
+SET @guard = 2;$$
+SET @hierarchy = 0;$$
+
+CALL klk_dvb_t_channel_add(@channel_11, @signalsource, @name, @provider, 
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no, @guard,
+		@hierarchy, @result);$$
+
+
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 3073;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_11_v, 
+		@channel_11, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 3074;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_11_a, @channel_11, @pidtype, 
+		@pidno, @description, @result); $$
+
+
+
+SET @name='@TESTDVB_CHANNEL12_NAME@';$$
+SET @frequency = @TESTDVB_FREQUENCY1@;$$ 
+SET @provider=null;$$
+SET @channel_12 = '@TESTDVB_CHANNEL12_ID@';$$
+SET @dvb_bandwidth = 0;$$
+SET @code_rate_hp = 9;$$
+SET @code_rate_lp = 1;$$
+SET @modulation = 1;$$
+SET @transmode = 1;$$
+SET @channel_no = 12;$$
+SET @guard = 2;$$
+SET @hierarchy = 0;$$ 
+CALL klk_dvb_t_channel_add(@channel_12, @signalsource, @name, @provider, 
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no, @guard,
+		@hierarchy, @result);$$
+
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 3075;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_12_v, 
+		@channel_12, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 3076;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_12_a, @channel_12, @pidtype, 
+		@pidno, @description, @result); $$
+
+
+SET @name='@TESTDVB_CHANNEL2_NAME@';$$
+SET @frequency = @TESTDVB_FREQUENCY2@;$$ 
+SET @provider=null;$$
+SET @channel_2 = '@TESTDVB_CHANNEL2_ID@';$$
+SET @dvb_bandwidth = 0;$$
+SET @code_rate_hp = 9;$$
+SET @code_rate_lp = 1;$$
+SET @modulation = 1;$$
+SET @transmode = 1;$$
+SET @channel_no = 2;$$
+SET @guard = 2;$$
+SET @hierarchy = 0;$$ 
+CALL klk_dvb_t_channel_add(@channel_2, @signalsource, @name, @provider, 
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no, @guard,
+		@hierarchy, @result);$$
+
+
+
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 30;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_2_v, 
+		@channel_2, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 31;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_2_a, @channel_2, @pidtype, 
+		@pidno, @description, @result); $$
+
+
+
+SET @name='@TESTDVB_CHANNEL3_NAME@';$$
+SET @provider=null;$$
+SET @frequency = @TESTDVB_FREQUENCY3@;$$ 
+SET @channel_3 = '@TESTDVB_CHANNEL3_ID@';$$
+SET @dvb_bandwidth = 0;$$
+SET @code_rate_hp = 9;$$
+SET @code_rate_lp = 1;$$
+SET @modulation = 1;$$
+SET @transmode = 1;$$
+SET @channel_no = 20;$$
+SET @guard = 2;$$
+SET @hierarchy = 0;$$ 
+CALL klk_dvb_t_channel_add(@channel_3, @signalsource, @name, @provider,
+		@frequency, @dvb_bandwidth, @code_rate_hp, @code_rate_lp, 
+		@modulation, @transmode, @channel_no, @guard,
+		@hierarchy, @result);$$
+
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 3080;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_3_v, 
+		@channel_3, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 3081;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_3_a, @channel_3, @pidtype, 
+		@pidno, @description, @result); $$
+
+
+-- dvb-s card for scan tests
+SET @signalsource_s = '@DVB_SIGNAL_SOURCE_SAT@';$$
+
+SET @description = 'dvb-s sample card 3';$$
+SET @dvbtype = '@DVB_TYPE_DVB_S@';$$
+SET @enabled = 1;$$
+SET @adapterno = 2;$$
+SET @frontendno = 0;$$
+SET @resource_name = '@TESTDVB_CARD3_NAME@';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource_s, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+
+DELIMITER ;

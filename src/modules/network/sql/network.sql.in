@@ -1,0 +1,696 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+
+-- networking tables
+
+-- klk_network_media_types
+
+DROP TABLE  IF EXISTS `klk_network_media_types`;$$
+CREATE TABLE`klk_network_media_types` (
+  	`media_type` VARCHAR(40) NOT NULL DEFAULT '',
+	`bandwidth`INTEGER NOT NULL,
+  	`description` VARCHAR(255) NOT NULL DEFAULT '',
+  	PRIMARY KEY (`media_type`),	
+	UNIQUE KEY `media_type`(`media_type`),
+	UNIQUE KEY `description`(`description`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+-- klk_network_media klk_network_trunks
+
+DROP TABLE IF EXISTS `klk_network_trunks`;$$
+CREATE TABLE `klk_network_trunks` (
+  	`trunk` VARCHAR(40) NOT NULL DEFAULT '',
+	`media_type` VARCHAR(40) NOT NULL DEFAULt '',
+  	`description` VARCHAR(255) NOT NULL DEFAULt '',
+  	PRIMARY KEY (`trunk`),
+	UNIQUE KEY `trunk` (`trunk`),
+	UNIQUE KEY `media_type`(`media_type`),
+	CONSTRAINT `fk_klk_network_trunks_media_type` FOREIGN KEY (`media_type`) REFERENCES `klk_network_media_types` (`media_type`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+-- klk_network_interface_resources
+
+DROP TABLE IF EXISTS `klk_network_interface_resources`;$$
+CREATE TABLE `klk_network_interface_resources` (
+  	`resource` VARCHAR(40) NOT NULL DEFAULT '',
+	`trunk` VARCHAR(40) NOT NULL DEFAULT '',
+  	`node_name` VARCHAR(10) NOT NULL DEFAULT '',
+  	PRIMARY KEY (`resource`),
+	UNIQUE KEY `resource` (`resource`) ,
+	CONSTRAINT `fk_klk_network_interface_resources_resource` FOREIGN KEY (`resource`) REFERENCES `klk_resources`
+	(`resource`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+
+-- klk_network_interface_addresses
+-- it keeps network address mask and network
+DROP TABLE IF EXISTS `klk_network_interface_addresses`;$$
+CREATE TABLE `klk_network_interface_addresses` (
+  	`address` VARCHAR(40) NOT NULL DEFAULT '',
+	`resource` VARCHAR(40) NOT NULL DEFAULT '',
+  	`ip_address` VARCHAR(16) NOT NULL DEFAULT '',
+	`ip_mask` VARCHAR(16),
+	`ip_network` VARCHAR(16),
+  	PRIMARY KEY (`address`),
+	UNIQUE KEY `address` (`address`),
+	UNIQUE KEY `resource`(`resource`),
+	CONSTRAINT `fk_klk_network_interface_addresses_resource` FOREIGN KEY (`resource`) REFERENCES `klk_resources` (`resource`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+-- Network protocols
+DROP TABLE  IF EXISTS `klk_network_protocols`;$$ 
+CREATE TABLE`klk_network_protocols` (
+	`protocol` VARCHAR(40) NOT NULL DEFAULT '' ,
+	`proto_name` VARCHAR(40) NOT NULL DEFAULT '' ,
+	`description` VARCHAR(40) NOT NULL DEFAULT '',
+	PRIMARY KEY (`protocol`),
+	UNIQUE KEY `proto_name` (`proto_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- klk_network_routes
+DROP TABLE  IF EXISTS `klk_network_routes`;$$ 
+CREATE TABLE`klk_network_routes` (
+	`route` VARCHAR(40) NOT NULL DEFAULT '' ,
+	`name` VARCHAR(40) NOT NULL DEFAULT '' ,
+	`address` VARCHAR(40) NOT NULL DEFAULT '',
+	`host` VARCHAR(64) NOT NULL DEFAULT 'localhost',
+	`port` INTEGER NOT NULL,
+	`protocol` VARCHAR(40) NOT NULL DEFAULT '',
+	`lock_timestamp` DATETIME NOT NULL DEFAULT 0,
+	`lock_resource` VARCHAR(40) DEFAULT NULL,
+	PRIMARY KEY (`route`),
+	UNIQUE KEY `name` (`name`),
+	UNIQUE KEY `route` (`route`),
+	KEY `address`(`address`),
+	UNIQUE KEY `host_port_protocol` (`host`, `port`, `protocol`),
+	CONSTRAINT `fk_klk_network_routes_address_address` FOREIGN KEY (`address`) REFERENCES `klk_network_interface_addresses` (`address`) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT `fk_klk_network_routes_protocol` FOREIGN KEY (`protocol`) REFERENCES `klk_network_protocols` (`protocol`) ON DELETE CASCADE ON UPDATE CASCADE
+
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_network_routes_trigger_insert`$$
+CREATE TRIGGER `klk_network_routes_trigger_insert` AFTER INSERT ON `klk_network_routes`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_NET_ID@');
+
+DROP TRIGGER IF EXISTS `klk_network_routes_trigger_update`$$
+-- CREATE TRIGGER `klk_network_routes_trigger_update` AFTER UPDATE ON `klk_network_routes`
+-- FOR EACH ROW
+--    CALL klk_log_add('@MODULE_NET_ID@');
+
+DROP TRIGGER IF EXISTS `klk_network_routes_trigger_delete`$$
+CREATE TRIGGER `klk_network_routes_trigger_delete` AFTER DELETE ON `klk_network_routes`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_NET_ID@');
+
+
+-- stored procedures
+
+-- Network protocol add procedure
+DROP PROCEDURE IF EXISTS`klk_network_protocol_add`;$$
+CREATE PROCEDURE `klk_network_protocol_add` (
+	INOUT protocol VARCHAR(40),
+	IN proto_name VARCHAR(40), 
+	IN description VARCHAR(255),	
+	OUT return_value INT 
+) 
+BEGIN
+	IF protocol IS null THEN
+		SET protocol = UUID();
+	END IF;
+	INSERT INTO klk_network_protocols(protocol, proto_name, 
+		description) VALUES(protocol, proto_name, description);
+	SET return_value = 0; 
+END$$
+
+
+
+-- networking
+
+DROP PROCEDURE IF EXISTS`klk_network_media_type_add`;$$
+CREATE PROCEDURE `klk_network_media_type_add` (
+	INOUT media_type VARCHAR(40),
+	IN bandwidth INTEGER, 
+	IN description VARCHAR(255),	
+	OUT return_value INT 
+) 
+BEGIN
+	IF media_type IS null THEN
+		SET media_type = UUID();
+	END IF;
+	INSERT INTO klk_network_media_types(media_type, bandwidth, 
+		description) VALUES(media_type, bandwidth, description);
+	SET return_value = 0; 
+END$$
+
+	  
+
+DROP PROCEDURE IF EXISTS`klk_network_media_type_update`;$$
+CREATE PROCEDURE `klk_network_media_type_update` (
+  	IN media_type VARCHAR(40),
+	IN bandwidth INTEGER,
+  	IN description VARCHAR(255),	
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	UPDATE 
+		klk_network_media_types
+	SET 
+		klk_network_media_types.bandwidth = bandwidth,
+		klk_network_media_types.description = description
+	WHERE 
+		klk_network_media_types.media_type = media_type; 			
+	
+	SET return_value = 0;
+END;$$
+
+
+
+
+DROP PROCEDURE IF EXISTS `klk_network_media_type_delete`;$$
+CREATE PROCEDURE `klk_network_media_type_delete` (
+  	IN media_type VARCHAR(40),
+  	OUT return_value INTEGER 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_network_media_types WHERE klk_network_media_types.media_type = media_type;
+
+	SET return_value = 0;
+
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_network_media_type_list`;$$
+CREATE PROCEDURE `klk_network_media_type_list` (
+)  
+BEGIN
+	SELECT media_type, bandwidth, description  FROM klk_network_media_types;
+END;$$
+
+
+
+DROP PROCEDURE IF EXISTS`klk_network_trunk_add`;$$
+CREATE PROCEDURE `klk_network_trunk_add` (
+	INOUT trunk VARCHAR(40),
+	IN media_type VARCHAR(40), 
+	IN description VARCHAR(255),	
+	OUT return_value INT 
+) 
+BEGIN
+	IF trunk IS null THEN
+		SET trunk = UUID();
+	END IF;
+	INSERT INTO klk_network_trunks(trunk, media_type, description) 
+	VALUES  (trunk, media_type, description);
+	SET return_value = 0; 
+END$$
+
+	  
+
+DROP PROCEDURE IF EXISTS`klk_network_trunk_update`;$$
+CREATE PROCEDURE `klk_network_trunk_update` (
+  	IN trunk VARCHAR(40),
+  	IN description VARCHAR(255),	
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	UPDATE 
+		klk_network_trunks
+	SET 
+		klk_network_trunks.description = description
+	WHERE 
+		klk_network_trunks.trunk = trunk; 			
+	SET return_value = 0;
+END;$$
+
+
+DROP PROCEDURE IF EXISTS `klk_network_trunk_delete`;$$
+CREATE PROCEDURE `klk_network_trunk_delete` (
+  	IN trunk VARCHAR(40),
+  	OUT return_value INTEGER 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	DELETE FROM klk_network_trunks WHERE klk_network_trunks.trunk = trunk;
+	SET return_value = 0;
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_network_trunk_list`;$$
+CREATE PROCEDURE `klk_network_trunk_list` (
+)  
+BEGIN
+	SELECT trunk, description  FROM klk_network_trunks;
+END;$$
+
+
+/*
+	add interface resource 
+
+	0 = ok
+	-2 = not enough bandwidth
+
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_network_interface_resource_add`;$$
+CREATE PROCEDURE `klk_network_interface_resource_add` (
+	IN bus VARCHAR(40),
+	IN trunk VARCHAR(40),
+	IN enabled TINYINT, 
+	IN node_name VARCHAR(10),
+	IN resource_name VARCHAR(50),
+	OUT resource VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE resource_type VARCHAR(40);
+
+	SET return_value = 0;
+	SET resource = NULL;
+	SET resource_type = '@RESOURCE_TYPE_NETWORK_INTERFACE@';
+
+
+	CALL klk_resource_add(bus,resource_type, resource_name, resource,return_value);
+	CALL klk_resource_enable(resource,enabled,return_value);
+
+	IF (return_value=0) THEN		
+		INSERT INTO klk_network_interface_resources(resource, trunk, node_name) VALUES (resource,trunk,node_name); 
+	END IF;
+
+END$$
+
+
+
+
+DROP PROCEDURE IF EXISTS`klk_network_interface_resource_update`;$$
+CREATE PROCEDURE `klk_network_interface_resource_update` (
+	IN resource VARCHAR(40),
+	IN trunk VARCHAR(40),
+	IN network_media_type VARCHAR(40),
+	IN enabled TINYINT, 
+	IN node_name VARCHAR(10),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE resource_type VARCHAR(40);
+
+	SET return_value = 0;
+	SET resource = NULL;
+	SET resource_type = '@RESOURCE_TYPE_NETWORK_INTERFACE@';
+
+	CALL klk_resource_add(bus,resource_type,resource,return_value);
+	CALL klk_resource_enable(resource,enabled,return_value);
+
+	IF (return_value=0) THEN		
+		INSERT INTO klk_network_interface_resources(resource,
+				trunk, node_name) VALUES
+				(resource,trunk,node_name); 
+	END IF;
+
+END$$
+
+	  
+
+-- FIXME : DELETE and list is missing 
+
+
+DROP PROCEDURE IF EXISTS`klk_network_interface_address_add`;$$
+CREATE PROCEDURE `klk_network_interface_address_add` (
+	INOUT address VARCHAR(40),
+	IN resource VARCHAR(40), 
+	IN ip_address VARCHAR(16),
+	IN ip_mask VARCHAR(16),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE ip_network VARCHAR(20);
+
+	IF address IS null THEN
+		SET address = UUID();
+	END IF;
+
+	SET ip_network = INET_NTOA(INET_ATON(ip_address) & INET_ATON(ip_mask));
+
+	INSERT INTO klk_network_interface_addresses(address, resource, 
+		ip_address, ip_mask, ip_network) 
+		VALUES(address, resource, ip_address, ip_mask, ip_network);
+	SET return_value = 0; 
+END$$
+
+	  
+
+DROP PROCEDURE IF EXISTS`klk_network_interface_address_update`;$$
+CREATE PROCEDURE `klk_network_interface_address_update` (
+  	IN address VARCHAR(40),
+  	IN ip_address VARCHAR(16),
+	IN ip_mask VARCHAR(16),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	UPDATE 
+		klk_network_interface_addresses
+	SET 
+		klk_network_interface_addresses.ip_address = ip_address,
+		klk_network_interface_addresses.ip_mask = ip_mask
+	WHERE 
+		klk_network_interface_addresses.address = address; 			
+	
+	SET return_value = 0;
+END;$$
+
+
+
+
+DROP PROCEDURE IF EXISTS `klk_network_interface_address_delete`;$$
+CREATE PROCEDURE `klk_network_interface_address_delete` (
+  	IN address VARCHAR(40),
+  	OUT return_value INTEGER 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_network_interface_addresses 
+		WHERE klk_network_interface_addresses.address = address;
+
+	SET return_value = 0;
+
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_network_interface_address_list`;$$
+CREATE PROCEDURE `klk_network_interface_address_list` (
+	IN resource VARCHAR(40)
+)  
+BEGIN
+	SELECT address, ip_address, ip_mask 
+		FROM  klk_network_interface_addresses 
+		WHERE resource = resource;
+END;$$
+
+
+
+-- host port protocol should be unique error code 23000 (dublicate entry)
+DROP PROCEDURE IF EXISTS `klk_network_route_add`;$$
+CREATE PROCEDURE `klk_network_route_add` (
+	INOUT route VARCHAR(40),
+	IN name VARCHAR(40), 
+	IN address VARCHAR(40), 
+	IN host VARCHAR(50),
+	IN port INTEGER,
+	IN protocol VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+
+	IF route IS null THEN
+	   SET route = UUID();
+	END IF;
+
+	INSERT INTO 
+	   klk_network_routes (route, name, address, host, port, protocol) 
+		VALUES(route, name, address, host, port, protocol);
+
+	SET return_value=0;	
+END$$
+
+	  
+
+DROP PROCEDURE IF EXISTS `klk_network_route_delete`;$$
+CREATE PROCEDURE `klk_network_route_delete` (
+  	IN route VARCHAR(40),
+  	OUT return_value INTEGER 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_network_routes 
+		WHERE klk_network_routes.route = route;
+
+	SET return_value = 0;
+
+END;$$
+
+-- returns essiantial network information by resource uuid
+DROP PROCEDURE IF EXISTS `klk_network_route_get`;$$
+CREATE PROCEDURE `klk_network_route_get` (
+  	IN resource VARCHAR(40)
+) 
+BEGIN
+	DECLARE network VARCHAR(20);
+
+	SELECT klk_network_interface_addresses.ip_network INTO network 
+	       FROM klk_network_interface_addresses
+	       WHERE klk_network_interface_addresses.resource = resource;
+
+	SELECT 
+	klk_network_routes.name,
+	klk_network_routes.route,
+	klk_network_routes.host,
+	klk_network_routes.port,
+	klk_network_routes.protocol,
+	klk_network_protocols.proto_name
+	FROM klk_network_routes, klk_network_interface_addresses,
+ 	     klk_network_protocols
+	WHERE klk_network_routes.address = klk_network_interface_addresses.address AND 
+	klk_network_interface_addresses.ip_network = network AND
+	klk_network_protocols.protocol = klk_network_routes.protocol;		
+END;$$
+
+-- list network resources by host id
+DROP PROCEDURE IF EXISTS `klk_network_resources_list`;$$
+CREATE PROCEDURE `klk_network_resources_list` (
+  	IN host VARCHAR(40)
+)
+BEGIN
+	IF host IS null THEN
+	    SELECT 
+	        klk_resources.resource_name,
+	        klk_resources.bus,
+		klk_resources.resource,
+		klk_resources.bandwidth,
+	        klk_network_interface_addresses.ip_address,
+	        klk_network_interface_addresses.ip_mask,
+		klk_network_interface_addresses.address
+	    FROM klk_resources, klk_network_interface_addresses
+	    WHERE 
+	    klk_resources.resource_type = '@RESOURCE_TYPE_NETWORK_INTERFACE@' 
+	    AND 
+	    klk_resources.resource = klk_network_interface_addresses.resource;
+	ELSE
+	    SELECT 
+	        klk_resources.resource_name,
+	        klk_resources.bus,
+		klk_resources.resource,
+		klk_resources.bandwidth,
+	        klk_network_interface_addresses.ip_address,
+	        klk_network_interface_addresses.ip_mask,
+		klk_network_interface_addresses.address	
+	    FROM klk_resources, klk_busses, klk_network_interface_addresses
+	    WHERE 
+	    klk_resources.resource_type = '@RESOURCE_TYPE_NETWORK_INTERFACE@' 
+	    AND 
+	    klk_resources.resource = klk_network_interface_addresses.resource
+	    AND	
+	    klk_resources.bus = klk_busses.bus
+		AND
+		klk_busses.host = host;
+	END IF;
+END;$$
+
+-- locks a route
+-- return 0 if lock was ok
+-- -1 if the lock was failed (route is already used by another mediaserver)
+DROP PROCEDURE IF EXISTS `klk_network_route_lock`;$$
+CREATE PROCEDURE `klk_network_route_lock` (
+  	IN route VARCHAR(40),
+	IN resource VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_timestamp DATETIME;
+	DECLARE lock_resource VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+
+	SELECT klk_network_routes.lock_timestamp, 
+	       klk_network_routes.lock_resource 
+	       INTO lock_timestamp, lock_resource FROM klk_network_routes
+	       WHERE klk_network_routes.route = route FOR UPDATE;	       
+	SET return_value = 0; 
+	IF ((lock_resource IS NULL) OR (lock_timestamp < NOW())
+	   		  OR (lock_resource = resource)) THEN
+	    UPDATE klk_network_routes 
+	    SET 
+	    klk_network_routes.lock_timestamp=NOW() + INTERVAL 2*@NETWORK_LOCK_INTERVAL@ SECOND,
+	    klk_network_routes.lock_resource=resource
+	    WHERE klk_network_routes.route=route;
+	ELSE
+	    SET return_value = -1; 
+	END IF;
+END;$$
+
+-- updates lock for a route
+DROP PROCEDURE IF EXISTS `klk_network_route_update_lock`;$$
+CREATE PROCEDURE `klk_network_route_update_lock` (
+  	IN route VARCHAR(40),
+	IN resource VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_resource VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+
+	SELECT klk_network_routes.lock_resource 
+	       INTO lock_resource FROM klk_network_routes
+	       WHERE klk_network_routes.route = route FOR UPDATE;	       
+	SET return_value = 0; 
+	IF (lock_resource = resource) THEN
+	    CALL klk_network_route_lock(route, resource, return_value);
+	END IF;
+END;$$
+
+-- unloks a route
+DROP PROCEDURE IF EXISTS `klk_network_route_unlock`;$$
+CREATE PROCEDURE `klk_network_route_unlock` (
+  	IN route VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+	SET return_value = 0; 
+	UPDATE klk_network_routes SET 
+	    klk_network_routes.lock_timestamp=0,
+	    klk_network_routes.lock_resource=NULL
+	    WHERE klk_network_routes.route=route;
+END;$$
+
+
+-- clears lock for a route
+DROP PROCEDURE IF EXISTS `klk_network_route_clear_lock`;$$
+CREATE PROCEDURE `klk_network_route_clear_lock` (
+  	IN route VARCHAR(40),
+	IN resource VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_resource VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+
+	SELECT klk_network_routes.lock_resource 
+	       INTO lock_resource FROM klk_network_routes
+	       WHERE klk_network_routes.route = route FOR UPDATE;	       
+	SET return_value = 0; 
+	IF (lock_resource = resource) THEN
+	   CALL klk_network_route_unlock(route, return_value);	    
+	END IF;
+END;$$
+
+-- Checks lock state
+DROP PROCEDURE IF EXISTS `klk_network_route_getlock`;$$
+CREATE PROCEDURE `klk_network_route_getlock` (
+  	IN route VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_timestamp DATETIME;
+	DECLARE lock_resource VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+
+
+	SELECT klk_network_routes.lock_timestamp,
+	       klk_network_routes.lock_resource
+	       INTO lock_timestamp, lock_resource FROM klk_network_routes
+	       WHERE klk_network_routes.route = route FOR UPDATE;	       
+	SET return_value = 1; 
+	IF (lock_resource IS NULL) THEN
+	   SET return_value = 0;
+	END IF;
+	IF (lock_timestamp < NOW()) THEN
+	   SET return_value = 0;
+	END IF;
+END;$$
+
+
+-- utest stored procedures
+
+
+-- create default data
+
+-- create resource type network 
+SET @resource_type_nic = '@RESOURCE_TYPE_NETWORK_INTERFACE@';$$
+SET @description = '1000MBit Network interface card';$$
+SET @bandwidth = 50000;$$
+CALL klk_resource_type_add(@resource_type_nic, @description,
+		@bandwidth, @result);$$
+
+-- create network media types
+SET @network_media_type_1000M = '@NETWORK_MEDIA_TYPE_1000M@';$$
+SET @description = '1000M trunk';$$
+SET @bandwidth = 50000;$$
+CALL klk_network_media_type_add(@network_media_type_1000M, @description, 
+		@bandwidth, @result);$$
+
+SET @network_media_type_100M = '@NETWORK_MEDIA_TYPE_100M@';$$
+SET @description = '100M trunk';$$
+SET @bandwidth = 5000;$$
+CALL klk_network_media_type_add(@network_media_type_100M, @description, 
+		@bandwidth, @result);$$
+
+SET @network_media_type_10M = '@NETWORK_MEDIA_TYPE_10M@';$$
+SET @description = '10M trunk';$$
+SET @bandwidth = 500;$$
+CALL klk_network_media_type_add(@network_media_type_10M, @description, 
+		@bandwidth, @result);$$
+
+SET @network_media_type_1M = '@NETWORK_MEDIA_TYPE_1M@';$$
+SET @description = '1M trunk';$$
+SET @bandwidth = 50;$$
+CALL klk_network_media_type_add(@network_media_type_1M, @description, 
+		@bandwidth, @result);$$
+
+-- create default trunk
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+SET @media_type = '@NETWORK_MEDIA_TYPE_100M@';$$
+SET @descricption = 'Default network trunk';$$
+CALL klk_network_trunk_add(@trunk, @media_type, @description, @result);$$
+
+-- create protocol entries
+SET @protocol = '@NETWORK_PROTO_TCPIP@';$$
+SET @name = '@NETWORK_PROTO_TCPIP_NAME@';$$
+SET @description = 'The Internet Protocol Suite (commonly known as TCP/IP) is the set of communications protocols used for the Internet and other similar networks.';$$
+CALL klk_network_protocol_add(@protocol, @name, @description, @result);$$
+
+SET @protocol = '@NETWORK_PROTO_UDP@';$$
+SET @name = '@NETWORK_PROTO_UDP_NAME@';$$
+SET @description = 'The User Datagram Protocol (UDP) is one of the core members of the Internet Protocol Suite, the set of network protocols used for the Internet. With UDP, computer applications can send messages, in this case referred to as datagrams, to other hosts on an Internet Protocol (IP) network without requiring prior communications to set up special transmission channels or data paths. UDP is sometimes called the Universal Datagram Protocol.';$$
+CALL klk_network_protocol_add(@protocol, @name, @description, @result);$$
+
+
+DELIMITER ;
+

@@ -1,0 +1,50 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+/*
+ We have 2 dvb-t card here and 4 channels
+ 2 on one card and one of the last two ones on the second card
+*/
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+
+-- create antenna and receiver card
+SET @signalsource = '@DVB_SIGNAL_SOURCE_TERRESTRIAL@';$$
+
+SET @description = 'dvb-t sample card 1';$$
+SET @dvbtype = '@DVB_TYPE_DVB_T@';$$
+SET @enabled = 1;$$
+SET @adapterno = 1;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'card1';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+-- dvb-s card fo scan tests
+SET @signalsource_s = '@DVB_SIGNAL_SOURCE_SAT@';$$
+SET @description = 'dvb-s sample card 1';$$
+SET @dvbtype = '@DVB_TYPE_DVB_S@';$$
+SET @enabled = 1;$$
+SET @adapterno = 0;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'card2';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource_s, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid,  
+		@result); $$
+
+
+DELIMITER ;

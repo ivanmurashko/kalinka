@@ -1,0 +1,151 @@
+DELIMITER $$
+
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create host (external)
+SET @hostname_ext = 'external testserver';$$
+SET @hostguid_ext = null;$$
+call klk_host_get_uuid(@hostname_ext, @hostguid_ext);$$
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+/* APPLICATION SETUP */
+
+-- create transcode demo application
+SET @application = '@TRANSCODE_TESTAPPLICATION@' ;$$
+SET @module = '@MODULE_TRANS_ID@' ;$$
+SET @app_name = 'transcode@testserver';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'transcode server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+-- create main application data --
+
+-- test input data from an avi file
+SET @input_file_uuid='@TRANSCODE_TESTINPUTFILE_UUID@';$$
+call klk_file_add(@input_file_uuid, '@TRANSCODE_TESTINPUTFILE_NAME@',
+     '@TRANSCODE_TESTINPUTFILE_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+
+SET @input_source_uuid = @input_file_uuid;$$
+SET @input_source_name = '@TRANSCODE_TESTINPUTSOURCE_NAME@';$$
+SET @input_media_type = '@MEDIA_TYPE_AUTO@';$$
+SET @input_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';$$
+call klk_app_transcode_source_add(@input_source_uuid, @input_source_name,
+ @input_media_type, @input_source_type, @return_value);$$
+
+-- different destinations for the tests
+SET @output_file_uuid='@TRANSCODE_TESTENCODER_DEFAULT_UUID@';$$
+call klk_file_add(@output_file_uuid, '@TRANSCODE_TESTENCODER_DEFAULT_NAME@',
+     '@TRANSCODE_TESTENCODER_DEFAULT_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+SET @output_file_uuid='@TRANSCODE_TESTENCODER_LOW_UUID@';$$
+call klk_file_add(@output_file_uuid, '@TRANSCODE_TESTENCODER_LOW_NAME@',
+     '@TRANSCODE_TESTENCODER_LOW_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+SET @output_file_uuid='@TRANSCODE_TESTENCODER_HIGH_UUID@';$$
+call klk_file_add(@output_file_uuid, '@TRANSCODE_TESTENCODER_HIGH_NAME@',
+     '@TRANSCODE_TESTENCODER_HIGH_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+
+
+-- Main test for different encoders
+-- the difference is in the encoder type only
+DROP PROCEDURE IF EXISTS `klk_app_transcode_test_encoder`;$$
+CREATE PROCEDURE `klk_app_transcode_test_encoder` (
+	IN media_type VARCHAR(40)
+) 
+BEGIN
+
+DECLARE result_value VARCHAR(40);
+DECLARE input_source_uuid VARCHAR(40);
+
+DECLARE task_uuid VARCHAR(40);
+DECLARE task_name  VARCHAR(40);
+DECLARE task_media_type  VARCHAR(40);
+DECLARE task_vsize  VARCHAR(40);
+DECLARE task_vquality  VARCHAR(40);
+DECLARE task_schedule  VARCHAR(40);
+
+DECLARE task0_output_source_uuid VARCHAR(40);
+DECLARE task1_output_source_uuid VARCHAR(40);
+DECLARE task2_output_source_uuid VARCHAR(40);
+DECLARE output_source_name VARCHAR(255);
+DECLARE output_source_type VARCHAR(40);
+
+SET input_source_uuid='@TRANSCODE_TESTINPUTFILE_UUID@';
+
+-- test output data to several test files for different encoding params
+SET task0_output_source_uuid = '@TRANSCODE_TESTENCODER_DEFAULT_UUID@';
+SET output_source_name = '@TRANSCODE_TESTENCODER_DEFAULT_NAME@';
+SET output_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';
+call klk_app_transcode_source_add(task0_output_source_uuid, output_source_name,
+ media_type, output_source_type, result_value);
+
+SET task1_output_source_uuid = '@TRANSCODE_TESTENCODER_LOW_UUID@';
+SET output_source_name = '@TRANSCODE_TESTENCODER_LOW_NAME@';
+SET output_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';
+call klk_app_transcode_source_add(task1_output_source_uuid, output_source_name,
+ media_type, output_source_type, result_value);
+
+SET task2_output_source_uuid = '@TRANSCODE_TESTENCODER_HIGH_UUID@';
+SET output_source_name = '@TRANSCODE_TESTENCODER_HIGH_NAME@';
+SET output_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';
+call klk_app_transcode_source_add(task2_output_source_uuid, output_source_name,
+ media_type, output_source_type, result_value);
+
+-- Now we add tasks
+SET task_uuid = NULL;
+SET task_name = 'task0';
+SET task_media_type = media_type;
+SET task_vsize = '@MODULE_TRANS_VSIZE_DEFAULT_UUID@';
+SET task_vquality = '@MODULE_TRANS_VQUALITY_DEFAULT_UUID@';
+SET task_schedule = '@MODULE_TRANS_SCHEDULE_REBOOT@';
+call klk_app_transcode_task_add(task_uuid, task_name, 
+	 input_source_uuid,
+     task0_output_source_uuid, 
+	 task_vsize, task_vquality, 
+	 task_schedule, 0, result_value);
+
+
+SET task_uuid = NULL;
+SET task_name = 'task1';
+SET task_media_type = media_type;
+SET task_vsize = '@MODULE_TRANS_VSIZE_320_240_UUID@';
+SET task_vquality = '@MODULE_TRANS_VQUALITY_LOW_UUID@';
+SET task_schedule = '@MODULE_TRANS_SCHEDULE_REBOOT@';
+call klk_app_transcode_task_add(task_uuid, task_name, 
+	 input_source_uuid,
+     task1_output_source_uuid, 
+	 task_vsize, task_vquality, 
+	 task_schedule, 0, result_value);
+
+SET task_uuid = NULL;
+SET task_name = 'task2';
+SET task_media_type = media_type;
+SET task_vsize = '@MODULE_TRANS_VSIZE_720_576_UUID@';
+SET task_vquality = '@MODULE_TRANS_VQUALITY_HIGH_UUID@';
+SET task_schedule = '@MODULE_TRANS_SCHEDULE_REBOOT@';
+call klk_app_transcode_task_add(task_uuid, task_name, 
+	 input_source_uuid,
+     task2_output_source_uuid, 
+	 task_vsize, task_vquality, 
+	 task_schedule, 0, result_value);
+
+END;$$
+
+DELIMITER ;

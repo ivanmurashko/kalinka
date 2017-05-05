@@ -1,0 +1,68 @@
+div#playlist { float: right;}
+
+ul#playlist {
+	background: url(/iface/media/img/eye.png) right bottom no-repeat;
+	padding-bottom: 150px;
+	list-style: none;
+}
+
+ul#playlist li {
+	margin-bottom: 3px;
+}
+
+div#vlc-container {
+	border: solid 2px orange;
+	width: 700px;
+	min-height: 100px;
+	color: white;
+	background: black;
+	text-align: center;
+}
+
+div#vlc-control {
+	width: 700px;
+	text-align: center;
+	margin-top: 5px;
+	font-size: large;
+}
+
+div#vlc-control ul {
+	list-style: none;
+}
+
+div#vlc-control ul li {
+	margin-left: 5px;
+	display: inline;
+}
+
+a.toggler {
+	border-bottom: 1px dashed;
+}
+
+a#vlc-mute {
+	padding-left: 16px;
+	background-image: url(/iface/media/img/audio.png);
+}
+a#vlc-mute.muted {
+	background-image: url(/iface/media/img/mute.png);
+}
+
+a#vlc-playpause {
+	padding-left: 15px;
+}
+
+a#vlc-playpause.paused {
+	background: url(/iface/media/img/play.png) no-repeat;
+}
+
+a#vlc-playpause.playing {
+	background: url(/iface/media/img/pause.png) no-repeat;
+}
+
+span.ajax-loading {
+	display: block;
+	background: url(/iface/media/img/spinner.gif) no-repeat;
+	vertical-align: middle;
+	min-height: 18px;
+	padding-left: 18px;
+}

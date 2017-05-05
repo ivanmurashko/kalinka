@@ -1,0 +1,32 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'FireWire bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = '@DEV_TYPE_IEEE1394BUS@';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+
+-- create a camera instance
+
+SET @uuid = '@IEEE1394_TEST_UUID1@';$$
+SET @name = '@IEEE1394_TEST_NAME1@';$$
+SET @description = '@IEEE1394_TEST_DESCRIPTION1@';$$
+
+call klk_ieee1394_add(@uuid, @name, @description, @return_value);$$
+
+/* APPLICATION SETUP */
+
+-- create demo application
+
+-- create main application data --
+
+DELIMITER ;

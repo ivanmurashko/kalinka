@@ -1,0 +1,145 @@
+{% extends "front/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Choose player and watch channels in you favorite browser" %}{% endblock %}
+
+{% block branding %}{% trans "Player" %}{% endblock %}
+
+{% block content %}
+<div id="playlist">
+    <h3>Aviabled channels
+        {% ifequal mode 'vlc' %}<a id="get-http-playlist" class="toggler" href="{% url front.views.ajax_playlist proto="http"%}">http</a>|
+        <a id="get-udp-playlist" class="toggler" href="{% url front.views.ajax_playlist proto="udp" %}">udp</a>{% endifequal %}
+    </h3>
+    <ul id="playlist">
+        {% for track in playlist.tracks %}
+            <li><a class="channel toggler" href="{{ track.link }}">{{ track.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+
+<h1>You can choose player</h1>
+<h3>{% for plr in player_list %}
+    &nbsp;<a href="{% url front.views.watch player=plr %}">{{ plr }}</a>
+    {% endfor %}</h3>
+
+
+{% ifequal player 'vlc' %}
+<h2>{% trans "VLC-plugin test-page by Kalinka" %}</h2>
+<div id="vlc-container">
+    If there is no VLC-plugin, try to download it from <a href="http://www.videolan.org/vlc/">this page</a>
+<!--<script type="text/javascript">
+    var vlc_inject = String('error occured');
+    if (Browser.Engine.trident) {
+        vlc_inject = '<object classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921" codebase="http://downloads.videolan.org/pub/videolan/vlc/latest/win32/axvlc.cab" type="application/x-vlc-plugin" width="640" height="480" id="vlcplugin" events="True"><param name="version" value="VideoLAN.VLCPlugin.2" /><param name="ShowDisplay" value="True" /><param name="AutoLoop" value="True" /><param name="AutoPlay" value="True" /><param name="Volume" value="100"><param name="Src" value="" /></object>'
+    } else {
+        if (Browser.Engine.gecko) {
+            vlc_inject = '<embed type="application/x-vlc-plugin" pluginspage="http://downloads.videolan.org/pub/videolan/vlc/latest/win32" name="vlcpluginname" id="vlcplugin" width="640" height="480" autoplay="yes" target="" />'
+        } else {
+            alert('unknown browser: ' + Browser.Engine.name);
+        }
+    }
+    document.write(vlc_inject);
+</script>-->
+</div>
+<div id="vlc-control">
+    <ul>
+        <li><a class="toggler" id="vlc-playpause" href="#">{% trans "Play/Pause" %}</a></li>
+        <li><a class="toggler" id="vlc-stop" href="#">{% trans "Stop" %}</a></li>
+        <li><a id="vlc-mute" href="#" title="{% trans "Mute" %}"></a></li>
+    </ul>
+</div>
+{% endifequal %}
+
+
+{% ifequal mode 'flash' %}
+<h2>{% trans "Flash-player test-page by Kalinka" %}</h2>
+<div id="player-container">
+<object type="application/x-shockwave-flash" data="/iface/media/player_flv_multi.swf" width="640" height="480">
+    <param name="FlashVars" value="flv={% for track in playlist.tracks %}{% if not forloop.first %}|{{ track.link }}{% else %}{{ track.link }}{% endif %}{% endfor %}" />
+</object>
+</div>
+{% endifequal %}
+
+
+{% ifequal mode 'jw' %}
+<h2>{% trans "Flash-player test-page by Kalinka" %}</h2>
+<div id="player-container"><a href="http://www.macromedia.com/go/getflashplayer">{% trans "Get Flash Player" %}</a>{% trans ", to watch video." %}</div>
+<script type="text/javascript">
+    var s1 = new SWFObject("/iface/media/jv_player.swf","NAKO","640","480","9","#FFFFFF");
+    s1.addParam("allowfullscreen","true");
+    s1.addParam("allowscriptaccess","always");
+    s1.addParam("flashvars","type=rtmp&autostart=true&repeat=single");
+    s1.write("player-container");
+</script>
+{% endifequal %}
+
+
+{% ifequal mode 'flow' %}
+<h2>{% trans "Flowplayer on the way" %}</h2>
+<div id="flow-container">
+<a 
+    style="display:block;width:640px;height:480px;background-color:#eee;"
+    
+    id="flow-player">
+</a>
+</div>
+
+<script language="JavaScript">
+    flowplayer("flow-player", "/iface/media/flowplayer-3.1.5.swf", {
+        clip : {
+            autoPlay: true,
+            autoBuffering: true,
+            provider: 'pseudo',
+            //live: true,
+        },
+        playlist: [
+            { url: 'http://beethoven.lan.spbgasu.ru:8080/cameralo'},
+        //    {% for track in playlist.tracks %}
+        //    {url: '{{ track.link }}', provider: 'rtmp' },
+        //    {% endfor %}
+        ],
+        plugins: {
+            rtmp: { 
+                url: '/iface/media/flowplayer.rtmp-3.1.3.swf',
+            },
+            pseudo: { 
+                url: '/iface/media/flowplayer.pseudostreaming-3.1.3.swf',
+            },
+            controls: {
+                url: '/iface/media/flowplayer.controls-3.1.5.swf',
+                playlist: true,
+            }
+        }
+    });
+</script>
+{% endifequal %}
+
+{% ifequal mode 'h264' %}
+<h2>{% trans "Let's try youtube player" %}</h2>
+<div id="hd-container">
+</div>
+<script type="text/javascript">
+		var so1 = new SWFObject("/iface/media/h264.swf", "h264", "730", "364", "7",  null, true);
+		so1.addParam("allowFullScreen", "true");
+		so1.addParam("allowSciptAccess", "always");
+		so1.addVariable("autoplay", "false");
+		so1.addVariable("maintainaspect", "false");
+		//so1.addVariable("logourl", "http://www.flvhosting.com/af/idevaffiliate.php?id=385");
+		so1.addVariable("movieName", "http://beethoven.lan.spbgasu.ru:8080/cameralo")
+		//so1.addVariable("movieName", "http://yourdomain.com/movies/moviename.mp4");
+		//so1.addVariable("rtmpPath", "rtmp://yourdomain.com/rtmppath");
+		so1.write("hd-container");
+	</script>
+
+{% endifequal %}
+
+{% ifequal mode 'uppod' %}
+<object type="application/x-shockwave-flash" data="/iface/media/uflvplayer_500x375.swf" height="480" width="640">
+    <param name="allowFullScreen" value="true" />
+    <param name="allowScriptAccess" value="always" />
+    <param name="movie" value="/iface/media/uflvplayer_500x375.swf" />
+    <param name="FlashVars" value="way=http://beethoven.lan.spbgasu.ru:8080/cameralo&amp;swf=/iface/media/uflvplayer_500x375.swf&amp;w=400&amp;h=300&amp;pic=http://&amp;autoplay=0&amp;tools=2&amp;skin=white&amp;volume=70&amp;q=&amp;comment=" />
+</object>
+{% endifequal %}
+{% endblock %}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klktestdata>
+  <tuneinfo>
+    <type>dvbt</type>
+    <adapter>0</adapter>
+    <frontend>0</frontend>
+    <frequency>522000000</frequency>
+    <bandwidth>0</bandwidth>
+    <code-rate-hp>9</code-rate-hp>
+    <code-rate-lp>1</code-rate-lp>
+    <hierarchy>0</hierarchy>
+    <modulation>1</modulation>
+    <transmode>1</transmode>
+    <guard>2</guard>
+  </tuneinfo>
+  <channel1>
+    <name>Test1</name>
+    <station_id>first</station_id>
+    <channel_no>11</channel_no>
+    <host>127.0.0.1</host>
+    <port>4001</port>
+  </channel1>
+  <channel2>
+    <name>Test2</name>
+    <station_id>second</station_id>
+    <channel_no>12</channel_no>
+    <host>127.0.0.1</host>
+    <port>4002</port>
+  </channel2>
+  <channel3>
+    <name>Test3</name>
+    <station_id>third</station_id>
+    <channel_no>13</channel_no>
+    <host>127.0.0.1</host>
+    <port>4003</port>
+  </channel3>
+  <channel4>
+    <name>Test4</name>
+    <station_id>forth</station_id>
+    <channel_no>14</channel_no>
+    <host>127.0.0.1</host>
+    <port>4004</port>
+  </channel4>
+  <channel5>
+    <name>Test5</name>
+    <station_id>forth</station_id>
+    <channel_no>15</channel_no>
+    <host>127.0.0.1</host>
+    <port>4005</port>
+  </channel5>
+</klktestdata>
+

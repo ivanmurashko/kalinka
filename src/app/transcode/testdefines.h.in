@@ -1,0 +1,267 @@
+/**
+   @file testdefines.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2009/03/23 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLKTRANS_TESTDEFINES_H
+#define KLKTRANS_TESTDEFINES_H
+
+#include <sys/types.h>
+
+#include <string>
+
+namespace klk
+{
+    namespace trans
+    {
+        namespace test
+        {
+
+            /** @addtogroup grTransTest
+
+                Defines for transcode utests
+
+                @{
+            */
+
+            /**
+               Test application uuid
+            */
+            const std::string APPUUID = "@TRANSCODE_TESTAPPLICATION@";
+
+            /**
+               Input file
+            */
+            const std::string INPUTFILE = "@TRANSCODE_TESTINPUTFILE_PATH@";
+
+            /**
+               Output file
+            */
+            const std::string OUTPUTFILE = "@TRANSCODE_TESTOUTPUTFILE_PATH@";
+
+            /**
+               Input file (mjpeg source test)
+            */
+            const std::string INPUTFILEMJPEG =
+                "@TRANSCODE_TESTINPUTFILEMJPEG_PATH@";
+
+            /**
+               Output file (mjpeg source test)
+            */
+            const std::string OUTPUTFILEMJPEG =
+                "@TRANSCODE_TESTOUTPUTFILEMJPEG_PATH@";
+
+            /**
+               Input file (mpegts source test)
+            */
+            const std::string INPUTFILEMPEGTS =
+                "@TRANSCODE_TESTINPUTFILEMPEGTS_PATH@";
+
+            /**
+               Result file (rtp source test)
+            */
+            const std::string OUTPUTFILERTP =
+                "@TRANSCODE_TESTOUTPUTFILERTP_PATH@";
+
+            /**
+               Output file (mpegts source test)
+            */
+            const std::string OUTPUTFILEMPEGTS =
+                "@TRANSCODE_TESTOUTPUTFILEMPEGTS_PATH@";
+
+            /**
+               Output folder (archive generation source test)
+            */
+            const std::string OUTPUTARCH =
+                "@TRANSCODE_TESTOUTPUTARCH_PATH@";
+
+            /**
+               Output file for route
+            */
+            const std::string OUTPUTROUTE = "/tmp/klktesttransroute.flv";
+
+            /**
+               Test route addr
+            */
+            const std::string ROUTEADDR = "@TRANSCODE_TESTROUTE_ADDR@";
+
+            /**
+               Test route port
+            */
+            const u_int ROUTEPORT = @TRANSCODE_TESTROUTE_PORT@;
+
+            /**
+               Source type name for file sources
+            */
+            const std::string FILETYPENAME =
+                "@MODULE_TRANS_SOURCE_TYPE_FILE_NAME@";
+
+            /**
+               Source type name for network sources
+            */
+            const std::string NETTYPENAME =
+                "@MODULE_TRANS_SOURCE_TYPE_NET_NAME@";
+
+            /**
+               Test route name (used in CLI tests)
+            */
+            const std::string ROUTENAME = "@TRANSCODE_TESTROUTE_NAME@";
+
+            /**
+               Test input file name (used in CLI tests)
+            */
+            const std::string INPUTFILENAME = "@TRANSCODE_TESTINPUTFILE_NAME@";
+
+            /**
+               Test route name (used in CLI tests)
+               @note there is a source name
+            */
+            const std::string SOURCE_ROUTENAME =
+                "@MODULE_TRANS_SOURCE_TYPE_NET_NAME@/"
+                "@TRANSCODE_TESTROUTE_NAME@/@MEDIA_TYPE_FLV_NAME@";
+
+            /**
+               Test input file name (used in CLI tests)
+               @note there is a source name
+            */
+            const std::string SOURCE_INPUTFILENAME =
+                "@MODULE_TRANS_SOURCE_TYPE_FILE_NAME@/"
+                "@TRANSCODE_TESTINPUTFILE_NAME@/@MEDIA_TYPE_FLV_NAME@";
+
+            /**
+               Input source name
+
+               @note used at task related CLI commands tests
+            */
+            const std::string INPUTSRC4TASK_NAME =
+                "@TRANSCODE_TESTINPUTSOURCE_NAME@";
+
+            /**
+               Output source name
+
+               @note used at task related CLI commands tests
+            */
+            const std::string OUTPUTSRC4TASK_NAME1 =
+                "@TRANSCODE_TESTOUTPUTSOURCE_NAME@";
+
+            /**
+               Output source name
+
+               @note used at task related CLI commands tests
+            */
+            const std::string OUTPUTSRC4TASK_NAME2 =
+                "@TRANSCODE_TESTROUTESOURCE_NAME@";
+
+            /**
+               First task name
+            */
+            const std::string TASK1_NAME = "@TRANSCODE_TESTTASK1_NAME@";
+
+            /**
+               Second task name
+            */
+            const std::string TASK2_NAME = "@TRANSCODE_TESTTASK2_NAME@";
+
+            /**
+               First task uuid
+            */
+            const std::string TASK1_UUID = "@TRANSCODE_TESTTASK1_UUID@";
+
+            /**
+               Second task uuid
+            */
+            const std::string TASK2_UUID = "@TRANSCODE_TESTTASK2_UUID@";
+
+
+            /**
+               Media type name for empty (no need a transcode)
+             */
+            const std::string MEDIA_EMPTY = "@MEDIA_TYPE_EMPTY_NAME@";
+
+            /**
+               Media type name for FLV
+             */
+            const std::string MEDIA_FLV = "@MEDIA_TYPE_FLV_NAME@";
+
+            /**
+               Default size for video
+            */
+            const std::string MEDIA_DEFAULT_SIZE =
+                "@MODULE_TRANS_VSIZE_DEFAULT_NAME@";
+
+            /**
+               320x240 size for video
+            */
+            const std::string MEDIA_320_240_SIZE =
+                "@MODULE_TRANS_VSIZE_320_240_NAME@";
+
+            /**
+               Low quality for video
+            */
+            const std::string MEDIA_LOW_QUALITY =
+                "@MODULE_TRANS_VQUALITY_LOW_NAME@";
+
+            /**
+               Duration for arch test
+            */
+            const time_t ARCH_DURATION = @TRANSCODE_TESTOUTPUTARCH_DURATION@;
+
+            /**
+               Encoder test file for default video settings
+            */
+            const std::string OUTPUTFILE_ENCODER_DEFAULT =
+                "@TRANSCODE_TESTENCODER_DEFAULT_PATH@";
+
+            /**
+               Encoder test file for low video settings
+            */
+            const std::string OUTPUTFILE_ENCODER_LOW =
+                "@TRANSCODE_TESTENCODER_LOW_PATH@";
+
+            /**
+               Encoder test file for hight video settings
+            */
+            const std::string OUTPUTFILE_ENCODER_HIGH =
+                "@TRANSCODE_TESTENCODER_HIGH_PATH@";
+
+            /// Folder with test data/scripts
+            const std::string DATAPATH = "@TRANSCODE_TEST_FOLDER@";
+
+            /** @} */
+
+        }
+    }
+}
+
+#endif //KLKTRANS_TESTDEFINES_H

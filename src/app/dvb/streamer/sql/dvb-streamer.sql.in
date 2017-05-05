@@ -1,0 +1,424 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- application table
+
+-- dvb-streamer application table
+DROP TABLE  IF EXISTS `klk_app_dvb_streamer`;$$ 
+CREATE TABLE`klk_app_dvb_streamer` (
+	`station` VARCHAR(40) NOT NULL DEFAULT '',
+	`channel` VARCHAR(40) NOT NULL DEFAULT '',
+	`route` VARCHAR(40) NOT NULL DEFAULT '',
+	`enable` TINYINT NOT NULL DEFAULT 1,
+	`lock_used_host` VARCHAR(40) DEFAULT NULL,  
+	`lock_timestamp` DATETIME NOT NULL DEFAULT 0,
+	`priority` INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY (`station`),
+	UNIQUE KEY `channel`(`channel`),
+	UNIQUE KEY `route`(`route`),
+	CONSTRAINT `fk_klk_app_dvb_streamer_channel_channel` 
+	FOREIGN KEY (`channel`) REFERENCES `klk_dvb_channels` (`channel`)
+	ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT `fk_klk_app_dvb_streamer_route_route` 
+	FOREIGN KEY (`route`) REFERENCES `klk_network_routes` (`route`) 
+	ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- help table that keeps failed station 
+-- (station that were failed to tune) info
+DROP TABLE  IF EXISTS `klk_app_dvb_streamer_failed_stations`;$$ 
+CREATE TABLE`klk_app_dvb_streamer_failed_stations` (
+	`station_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+	`host_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+	CONSTRAINT `fk_klk_app_dvb_streamer_failed_station` 
+	FOREIGN KEY (`station_uuid`) REFERENCES 
+		`klk_app_dvb_streamer` (`station`)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	FOREIGN KEY (`host_uuid`) REFERENCES 
+		`klk_hosts` (`host`)
+		ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Views 
+DROP VIEW  IF EXISTS `klk_app_dvb_streamer_channel_view`;$$ 
+CREATE VIEW `klk_app_dvb_streamer_channel_view`  (
+       station_name, channel
+)
+AS 
+       	SELECT 
+	       CONCAT(klk_dvb_channels.name, '/', klk_dvb_channels.provider),
+	       klk_dvb_channels.channel 
+	FROM klk_dvb_channels;$$
+
+
+DROP VIEW  IF EXISTS `klk_app_dvb_streamer_station_view`;$$ 
+CREATE VIEW `klk_app_dvb_streamer_station_view`  (
+       station_name, route_name, 
+       enable, priority, 
+       station, channel, route, lock_used_host, lock_timestamp,
+       source_uuid
+)
+AS 
+       	SELECT 
+	       CONCAT(klk_dvb_channels.name, '/', klk_dvb_channels.provider),
+	       klk_network_routes.name,
+	       klk_app_dvb_streamer.enable, 
+	       klk_app_dvb_streamer.priority, 
+	       klk_app_dvb_streamer.station, 
+	       klk_app_dvb_streamer.channel, 
+	       klk_app_dvb_streamer.route, 
+	       klk_app_dvb_streamer.lock_used_host,
+	       klk_app_dvb_streamer.lock_timestamp,
+	       klk_dvb_channels.signal_source AS source_uuid
+	FROM klk_app_dvb_streamer, klk_dvb_channels, 
+	     klk_network_routes
+	WHERE klk_app_dvb_streamer.channel = klk_dvb_channels.channel AND
+	      klk_app_dvb_streamer.route = klk_network_routes.route;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_app_dvb_streamer_trigger_insert`$$
+CREATE TRIGGER `klk_app_dvb_streamer_trigger_insert` AFTER INSERT ON `klk_app_dvb_streamer`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_DVBSTREAMER_ID@');
+
+DROP TRIGGER IF EXISTS `klk_app_dvb_streamer_trigger_update`$$
+CREATE TRIGGER `klk_app_dvb_streamer_trigger_update` AFTER UPDATE ON `klk_app_dvb_streamer`
+FOR EACH ROW
+BEGIN
+    IF ((NEW.lock_used_host IS NULL) OR (NEW.lock_timestamp < NOW())) THEN
+        CALL klk_log_add('@MODULE_DVBSTREAMER_ID@');
+    END IF;
+END;
+
+DROP TRIGGER IF EXISTS `klk_app_dvb_streamer_trigger_delete`$$
+CREATE TRIGGER `klk_app_dvb_streamer_trigger_delete` AFTER DELETE ON `klk_app_dvb_streamer`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_DVBSTREAMER_ID@');
+
+
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_add`;$$
+CREATE PROCEDURE `klk_app_dvb_station_add` (
+  	INOUT station VARCHAR(40),
+	IN channel VARCHAR(40),
+	IN route VARCHAR(40),
+	IN enable TINYINT,
+	IN priority INTEGER,	
+  	OUT return_value INT 
+) 
+BEGIN
+	IF station IS null THEN
+		SET station = UUID();
+	END IF;
+
+	IF priority IS null THEN
+		BEGIN
+			DECLARE CONTINUE HANDLER FOR NOT FOUND SET priority = 0;
+			SELECT klk_app_dvb_streamer.priority INTO 
+			priority FROM klk_app_dvb_streamer
+			ORDER BY priority LIMIT 1;
+			SET priority = priority +1 ;
+		END;
+	END IF;
+
+	INSERT INTO klk_app_dvb_streamer(station,channel,
+			route, enable, priority, lock_timestamp) 
+	VALUES  (station, channel,
+			route, enable, priority, 0);
+	        		
+	SET return_value = 0;
+END$$
+
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_add_cli`;$$
+CREATE PROCEDURE `klk_app_dvb_station_add_cli` (
+	IN station_name VARCHAR(255),
+	IN route_name VARCHAR(255),
+	IN priority INTEGER,	
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE station_uuid VARCHAR(40);
+	DECLARE channel_uuid VARCHAR(40);
+	DECLARE route_uuid VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-2;
+
+	SET station_uuid = UUID();	
+
+	IF priority IS null THEN
+		BEGIN
+			DECLARE CONTINUE HANDLER FOR NOT FOUND SET priority = 0;
+			SELECT klk_app_dvb_streamer.priority INTO 
+			priority FROM klk_app_dvb_streamer
+			ORDER BY priority LIMIT 1;
+			SET priority = priority +1 ;
+		END;
+	END IF;
+
+	SELECT klk_app_dvb_streamer_channel_view.channel INTO channel_uuid 
+	       FROM klk_app_dvb_streamer_channel_view WHERE
+	       klk_app_dvb_streamer_channel_view.station_name = station_name;
+
+	SELECT klk_network_routes.route INTO route_uuid 
+	       FROM klk_network_routes  WHERE 
+	       	    	klk_network_routes.name = route_name;
+
+	INSERT INTO klk_app_dvb_streamer(station,channel,
+			route, enable, priority, lock_timestamp) 
+	VALUES  (station_uuid, channel_uuid, route_uuid, 1, priority, 0);
+	        		
+	SET return_value = 0;
+END$$
+
+-- Deletes a station for CLI
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_del_cli`;$$
+CREATE PROCEDURE `klk_app_dvb_station_del_cli` (
+	IN station_name VARCHAR(255),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE channel_uuid VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+
+
+	SELECT klk_app_dvb_streamer_channel_view.channel INTO channel_uuid 
+	       FROM klk_app_dvb_streamer_channel_view WHERE
+	       klk_app_dvb_streamer_channel_view.station_name = station_name;
+
+	DELETE FROM klk_app_dvb_streamer WHERE 
+	       klk_app_dvb_streamer.channel = channel_uuid;
+	        		
+	SET return_value = 0;
+END$$
+
+
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_list`;$$
+CREATE PROCEDURE `klk_app_dvb_station_list` () 
+BEGIN
+	SELECT
+	       station_name, route_name, 
+	       enable, priority, 
+	       station, lock_used_host 
+	FROM klk_app_dvb_streamer_station_view;
+END;$$
+
+
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_get`;$$
+CREATE PROCEDURE `klk_app_dvb_station_get` (
+        IN used_host VARCHAR(40),
+        IN source_uuid VARCHAR(40)
+) 
+BEGIN
+	DECLARE done INT DEFAULT 0;
+	DECLARE lock_res INT DEFAULT 0;
+	DECLARE station_name VARCHAR(255);
+	DECLARE station VARCHAR(40);
+	DECLARE channel VARCHAR(40);
+	DECLARE route VARCHAR(40);
+
+	DECLARE cur_station CURSOR FOR 
+	SELECT 
+		klk_app_dvb_streamer_station_view.station_name,
+		klk_app_dvb_streamer_station_view.station,
+		klk_app_dvb_streamer_station_view.channel,
+		klk_app_dvb_streamer_station_view.route
+	FROM klk_app_dvb_streamer_station_view
+	WHERE klk_app_dvb_streamer_station_view.lock_timestamp < NOW() AND 
+	      klk_app_dvb_streamer_station_view.enable = 1 AND
+	      klk_app_dvb_streamer_station_view.source_uuid = source_uuid AND
+	      klk_app_dvb_streamer_station_view.station NOT IN 
+	      	(SELECT station_uuid FROM 
+	      	   klk_app_dvb_streamer_failed_stations WHERE
+		   klk_app_dvb_streamer_failed_stations.host_uuid = used_host)
+	      ORDER BY klk_app_dvb_streamer_station_view.priority;
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+	CREATE TEMPORARY TABLE IF NOT EXISTS tmp_res(
+	       station_name VARCHAR(255),
+	       station VARCHAR(40),
+	       channel VARCHAR(40),
+	       route VARCHAR(40));
+
+	OPEN cur_station;
+
+	REPEAT
+		FETCH cur_station INTO station_name, station, channel, route;
+		IF NOT done THEN
+		   -- Try to lock it
+		   CALL klk_app_dvb_station_lock(station, used_host, lock_res);
+		   IF lock_res = 0 THEN
+		      -- Add the result into temp table
+		      INSERT INTO tmp_res(station_name, station, channel, route)
+		      VALUES (station_name, station, channel, route);
+		   END IF;
+		END IF;
+	UNTIL done END REPEAT;
+
+	CLOSE cur_station;
+
+	-- return result from tem_res
+	SELECT tmp_res.station_name, tmp_res.station, 
+	       tmp_res.channel, tmp_res.route FROM tmp_res;
+END;$$
+
+-- gets not assigned channels
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_get_not_assinged_channels`;$$
+CREATE PROCEDURE `klk_app_dvb_station_get_not_assinged_channels` () 
+BEGIN
+
+	SELECT 
+	       CONCAT(klk_dvb_channels.name, '/' , klk_dvb_channels.provider) 
+	       				     AS station_name,
+	       klk_dvb_channels.channel AS channel,	       	       
+	       klk_dvb_types.name AS dvb_type_name,	       	       
+	       klk_dvb_signal_sources.name AS source_name
+	FROM klk_dvb_channels, klk_dvb_types, klk_dvb_signal_sources
+	WHERE klk_dvb_channels.channel	
+	      NOT IN (SELECT channel FROM klk_app_dvb_streamer) AND
+	      klk_dvb_channels.dvb_type = klk_dvb_types.dvb_type AND
+	      klk_dvb_channels.signal_source = klk_dvb_signal_sources.signal_source;
+END;$$
+
+-- gets not assigned channels
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_get_not_assinged_routes`;$$
+CREATE PROCEDURE `klk_app_dvb_station_get_not_assinged_routes` () 
+BEGIN
+	SELECT 
+	       klk_network_routes.name 
+	FROM klk_network_routes
+	WHERE klk_network_routes.route 
+	      NOT IN (SELECT route FROM klk_app_dvb_streamer);
+END;$$
+
+
+-- locks a route
+-- return 0 if lock was ok
+-- -1 if the lock was failed (station is already used by another mediaserver)
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_lock`;$$
+CREATE PROCEDURE `klk_app_dvb_station_lock` (
+  	IN station VARCHAR(40),
+	IN used_host VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_timestamp DATETIME;
+	DECLARE lock_used_host VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+
+	SELECT klk_app_dvb_streamer.lock_timestamp, 
+	       klk_app_dvb_streamer.lock_used_host 
+	       INTO lock_timestamp, lock_used_host FROM klk_app_dvb_streamer
+	       WHERE klk_app_dvb_streamer.station = station FOR UPDATE;	       
+	SET return_value = 0; 
+	IF ((lock_used_host IS NULL) OR (lock_timestamp < NOW())
+	   		  OR (lock_used_host = used_host)) THEN
+	    UPDATE klk_app_dvb_streamer 
+	    SET 
+	    klk_app_dvb_streamer.lock_timestamp=NOW() + 
+	    INTERVAL 2*@DVBSTREAMER_LOCK_INTERVAL@ SECOND,
+	    klk_app_dvb_streamer.lock_used_host=used_host
+	    WHERE klk_app_dvb_streamer.station=station;
+	ELSE
+	    SET return_value = -1; 
+	END IF;
+END;$$
+
+-- updates lock for a station
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_update_lock`;$$
+CREATE PROCEDURE `klk_app_dvb_station_update_lock` (
+  	IN station VARCHAR(40),
+	IN used_host VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_used_host VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+
+	SELECT klk_app_dvb_streamer.lock_used_host 
+	       INTO lock_used_host FROM klk_app_dvb_streamer
+	       WHERE klk_app_dvb_streamer.station = station FOR UPDATE;	       
+	SET return_value = 0; 
+	IF (lock_used_host = used_host) THEN
+	    CALL klk_app_dvb_station_lock(station, used_host, return_value);
+	END IF;
+END;$$
+
+-- unloks a station
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_unlock`;$$
+CREATE PROCEDURE `klk_app_dvb_station_unlock` (
+  	IN station VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+	SET return_value = 0; 
+	UPDATE klk_app_dvb_streamer SET 
+	    klk_app_dvb_streamer.lock_timestamp=0,
+	    klk_app_dvb_streamer.lock_used_host=NULL
+	    WHERE klk_app_dvb_streamer.station=station;
+END;$$
+
+
+
+-- Checks lock state
+DROP PROCEDURE IF EXISTS `klk_app_dvb_station_getlock`;$$
+CREATE PROCEDURE `klk_app_dvb_station_getlock` (
+  	IN station VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE lock_timestamp DATETIME;
+	DECLARE lock_used_host VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value=-1;
+
+
+	SELECT klk_app_dvb_streamer.lock_timestamp,
+	       klk_app_dvb_streamer.lock_used_host
+	       INTO lock_timestamp, lock_used_host FROM klk_app_dvb_streamer
+	       WHERE klk_app_dvb_streamer.station = station FOR UPDATE;	       
+	SET return_value = 1; 
+	IF (lock_used_host IS NULL) THEN
+	   SET return_value = 0;
+	END IF;
+	IF (lock_timestamp < NOW()) THEN
+	   SET return_value = 0;
+	END IF;
+END;$$
+
+-- Adds a failed station
+DROP PROCEDURE IF EXISTS `klk_app_dvb_failed_station_add`;$$
+CREATE PROCEDURE `klk_app_dvb_failed_station_add` (
+  	IN station_uuid VARCHAR(40),
+	IN host_uuid VARCHAR(40)
+) 
+BEGIN
+	INSERT INTO klk_app_dvb_streamer_failed_stations(
+	       	    station_uuid, host_uuid) 
+	VALUES  (station_uuid, host_uuid);
+END$$
+
+-- Removes all failed info for the specified host
+DROP PROCEDURE IF EXISTS `klk_app_dvb_failed_station_del`;$$
+CREATE PROCEDURE `klk_app_dvb_failed_station_del` (
+	IN host_uuid VARCHAR(40)
+) 
+BEGIN
+	DELETE FROM klk_app_dvb_streamer_failed_stations
+	       WHERE klk_app_dvb_streamer_failed_stations.host_uuid = host_uuid;
+END$$
+
+DELIMITER ;
+

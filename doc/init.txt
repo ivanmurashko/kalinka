@@ -1,0 +1,9 @@
+-*-mode: C;-*-
+/*! \mainpage Kalinka Mediaserver. 
+
+The document describes design and properties of the Kalinka 
+mediaserver application
+
+The project statistic can be viewed <A HREF="stat/cccc.html"> here </A> 
+
+*/

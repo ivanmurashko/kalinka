@@ -1,0 +1,91 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- The table keeps httpsrcs 
+-- The httpsrc is identified by it's name (any shor name) and path 
+-- (real httpsrc location)
+DROP TABLE  IF EXISTS `klk_httpsrc`;$$
+CREATE TABLE `klk_httpsrc` (
+    `httpsrc` varchar(40) NOT NULL DEFAULT '',
+    `title` varchar(64) NOT NULL DEFAULT '',
+    `address` varchar(255) NOT NULL DEFAULT '',
+    `login` varchar(32) NOT NULL DEFAULT '',
+    `passwd` varchar(32) NOT NULL DEFAULT '',
+    `description` varchar(255) NOT NULL DEFAULT '',
+	PRIMARY KEY (`httpsrc`),
+	UNIQUE KEY `title`(`title`),
+	UNIQUE KEY `name`(`address`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_httpsrc_trigger_insert`$$
+CREATE TRIGGER `klk_httpsrc_trigger_insert` AFTER INSERT ON `klk_httpsrc`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTPSRC_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_httpsrc_trigger_update`$$
+CREATE TRIGGER `klk_httpsrc_trigger_update` AFTER UPDATE ON `klk_httpsrc`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTPSRC_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_httpsrc_trigger_delete`$$
+CREATE TRIGGER `klk_httpsrc_trigger_delete` AFTER DELETE ON `klk_httpsrc`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTPSRC_ID@');$$
+
+-- stored procedures
+-- stored procedures
+
+-- New httpsrc entry add procedure
+DROP PROCEDURE IF EXISTS`klk_httpsrc_add`;$$
+CREATE PROCEDURE `klk_httpsrc_add` (
+	INOUT httpsrc VARCHAR(40),
+	IN title VARCHAR(64), 
+	IN address VARCHAR(255),
+	IN login VARCHAR(32),		
+	IN passwd VARCHAR(32),		
+	IN description VARCHAR(255),	
+	OUT return_value INT 
+) 
+BEGIN
+	SET return_value = -1;
+	IF httpsrc IS null THEN
+		SET httpsrc = UUID();
+	END IF;
+	INSERT INTO klk_httpsrc(httpsrc, title, address, login, passwd, description) 
+	VALUES(httpsrc, title, address, login, passwd, description);
+	SET return_value = 0; 
+END$$
+
+-- Retrives httpsrc info
+DROP PROCEDURE IF EXISTS`klk_httpsrc_list`;$$
+CREATE PROCEDURE `klk_httpsrc_list` (
+) 
+BEGIN
+	SELECT httpsrc AS uuid, title AS name, address AS addr, 
+		   login AS login, passwd AS password FROM klk_httpsrc;
+END$$
+
+-- Delete an HTTP source by it's name
+-- used at CLI
+DROP PROCEDURE IF EXISTS`klk_httpsrc_del_cli`;$$
+CREATE PROCEDURE `klk_httpsrc_del_cli` (
+	IN title VARCHAR(64), 
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_httpsrc WHERE klk_httpsrc.title = title;
+
+	SET return_value = 0;
+END$$
+
+DELIMITER ;
+

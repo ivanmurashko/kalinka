@@ -1,0 +1,203 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- The table keeps files types
+DROP TABLE  IF EXISTS `klk_file_type`;$$
+CREATE TABLE`klk_file_type` (
+  	`type_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+	`type_name` VARCHAR(128) NOT NULL DEFAULT '',
+	PRIMARY KEY (`type_uuid`),
+	UNIQUE KEY (`type_name`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+-- The table keeps files 
+-- The file is identified by it's name (any shor name) and path 
+-- (real file location)
+DROP TABLE  IF EXISTS `klk_file`;$$
+CREATE TABLE`klk_file` (
+  	`file` VARCHAR(40) NOT NULL DEFAULT '',
+	`name` VARCHAR(40) NOT NULL DEFAULT '',
+	`file_path` VARCHAR(255) NOT NULL DEFAULT '',
+	`host` VARCHAR(40) NOT NULL,
+	`type_uuid` VARCHAR(40) NOT NULL,
+	`parent_uuid` VARCHAR(40) NOT NULL,
+	`start_time` TIMESTAMP,
+	`end_time` DATETIME,
+  	PRIMARY KEY (`file`),	
+	UNIQUE KEY `name`(`name`),
+	UNIQUE KEY `file_on_host`(`file_path`, `host`),
+    CONSTRAINT `fk_klk_file_host` FOREIGN KEY (`host`) REFERENCES
+`klk_hosts` (`host`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_klk_file_file_type` FOREIGN KEY (`type_uuid`) REFERENCES
+`klk_file_type` (`type_uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `fk_klk_file_parent` FOREIGN KEY (`parent_uuid`) 
+	REFERENCES `klk_file` (`file`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_file_trigger_insert`$$
+CREATE TRIGGER `klk_file_trigger_insert` AFTER INSERT ON `klk_file`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_FILE_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_file_trigger_update`$$
+CREATE TRIGGER `klk_file_trigger_update` AFTER UPDATE ON `klk_file`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_FILE_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_file_trigger_delete`$$
+CREATE TRIGGER `klk_file_trigger_delete` AFTER DELETE ON `klk_file`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_FILE_ID@');$$
+
+-- stored procedures
+
+-- New file entry add procedure
+DROP PROCEDURE IF EXISTS`klk_file_add`;$$
+CREATE PROCEDURE `klk_file_add` (
+	INOUT file VARCHAR(40),
+	IN name VARCHAR(40), 
+	IN file_path VARCHAR(255),	
+	IN host VARCHAR(40),
+	IN type_uuid VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+	IF file IS null THEN
+		SET file = UUID();
+	END IF;
+	INSERT INTO klk_file(file, name, file_path, host, type_uuid, parent_uuid) 
+	VALUES(file, name, file_path, host, type_uuid, file);
+	SET return_value = 0; 
+END$$
+
+-- New file entry add procedure for child
+DROP PROCEDURE IF EXISTS`klk_file_add_child`;$$
+CREATE PROCEDURE `klk_file_add_child` (
+	INOUT file VARCHAR(40),
+	IN name VARCHAR(40), 
+	IN file_path VARCHAR(255),	
+	IN host VARCHAR(40),
+	IN parent_uuid VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE type_uuid VARCHAR(40);
+
+	SET return_value = -1; 
+	SET type_uuid = '@FILE_TYPE_REGULAR_UUID@';
+	IF file IS null THEN
+		SET file = UUID();
+	END IF;
+
+	INSERT INTO klk_file(file, name, file_path, host, type_uuid, parent_uuid) 
+	VALUES(file, name, file_path, host, type_uuid, parent_uuid);
+
+	SET return_value = 0; 
+END$$
+
+-- Updates end time for a file
+DROP PROCEDURE IF EXISTS`klk_file_update_end_time`;$$
+CREATE PROCEDURE `klk_file_update_end_time` (
+	IN file VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	UPDATE klk_file SET end_time = NOW() WHERE klk_file.file = file;
+
+	SET return_value = 0; 
+END$$
+
+-- Retrives file info for a specified host
+DROP PROCEDURE IF EXISTS`klk_file_list`;$$
+CREATE PROCEDURE `klk_file_list` (
+	IN host VARCHAR(40)
+) 
+BEGIN
+	SELECT klk_file.file, klk_file.name, klk_file.file_path, klk_file.type_uuid,
+	klk_file_type.type_name FROM klk_file, klk_file_type
+	WHERE klk_file.host = host 
+	AND klk_file.type_uuid = klk_file_type.type_uuid
+	AND klk_file.file = klk_file.parent_uuid;
+END$$
+
+-- Retrives file types
+DROP PROCEDURE IF EXISTS`klk_file_type_list`;$$
+CREATE PROCEDURE `klk_file_type_list` (
+) 
+BEGIN
+	SELECT type_name FROM klk_file_type;
+END$$
+
+-- New file entry add procedure
+-- Used for CLI
+DROP PROCEDURE IF EXISTS`klk_file_add_cli`;$$
+CREATE PROCEDURE `klk_file_add_cli` (
+	INOUT file VARCHAR(40),
+	IN name VARCHAR(40), 
+	IN file_path VARCHAR(255),	
+	IN host VARCHAR(40),
+	IN type_name VARCHAR(128),
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE type_uuid VARCHAR(40);
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT klk_file_type.type_uuid INTO type_uuid FROM 
+	       klk_file_type WHERE klk_file_type.type_name = type_name;
+		
+	CALL klk_file_add(file, name, file_path, host, type_uuid, return_value);
+END$$
+
+
+-- Delete an HTTP source by it's name
+-- used at CLI
+DROP PROCEDURE IF EXISTS`klk_file_del_cli`;$$
+CREATE PROCEDURE `klk_file_del_cli` (
+	IN name VARCHAR(40), 
+	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_file WHERE klk_file.name = name;
+
+	SET return_value = 0;
+END$$
+
+-- Adds a new file type
+DROP PROCEDURE IF EXISTS`klk_file_type_add`;$$
+CREATE PROCEDURE `klk_file_type_add` (
+	IN type_uuid VARCHAR(40),
+	IN type_name VARCHAR(128),
+	OUT return_value INT 
+) 
+BEGIN
+	INSERT INTO klk_file_type(type_uuid, type_name) VALUES (type_uuid, type_name);
+	SET return_value = 0; 
+END$$
+
+-- Fills the tables with default values
+
+-- Regular file type
+SET @type_uuid='@FILE_TYPE_REGULAR_UUID@';$$
+SET @type_name='@FILE_TYPE_REGULAR_NAME@';$$
+CALL klk_file_type_add(@type_uuid, @type_name, @result);$$
+
+-- Folder file type
+SET @type_uuid='@FILE_TYPE_FOLDER_UUID@';$$
+SET @type_name='@FILE_TYPE_FOLDER_NAME@';$$
+CALL klk_file_type_add(@type_uuid, @type_name, @result);$$
+
+DELIMITER ;
+

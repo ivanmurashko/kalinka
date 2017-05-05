@@ -1,0 +1,95 @@
+DELIMITER $$
+
+-- create hosts
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+SET @hostname_add = 'testserver_add';$$
+SET @hostguid_add = null;$$
+call klk_host_get_uuid(@hostname_add, @hostguid_add);$$
+
+SET @hostname_ext = 'testserver_ext';$$
+SET @hostguid_ext = null;$$
+call klk_host_get_uuid(@hostname_ext, @hostguid_ext);$$
+
+-- create bus
+SET @description = 'pci bus #1 for main server';$$
+SET @id = 1;$$
+SET @bus_type_id = '@DEV_TYPE_PCIBUS@';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+SET @description_add = 'pci bus #1 for addition server';$$
+call klk_bus_add(@hostguid_add, @id, @description_add, @bus_type_id, 
+     		@busguid_add, @result); $$
+SET @description_ext = 'pci bus #1 for external server';$$
+call klk_bus_add(@hostguid_ext, @id, @description_ext, @bus_type_id, 
+     		@busguid_ext, @result); $$
+
+-- create network conection
+
+-- create network card
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';
+SET @node_name = '@NET_TEST_DEV_NAME@';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+CALL klk_network_interface_resource_add(@busguid_add, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid_add, @result);$$
+CALL klk_network_interface_resource_add(@busguid_ext, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid_ext, @result);$$
+
+
+-- assign ip address to network card
+
+SET @address = NULL;$$
+SET @ipaddress = '@NET_TEST_DEV_ADDR@';$$
+SET @ipmask = '@NET_TEST_DEV_MASK@';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+SET @address_add = NULL;$$
+SET @ipaddress_add = '@NET_TEST_DEV_ADD_ADDR@';$$
+CALL klk_network_interface_address_add(@address_add, @nwresourceguid_add, 
+     		@ipaddress_add, @ipmask, @result);$$
+SET @address_ext = NULL;$$
+SET @ipaddress_ext = '@NET_TEST_DEV_EXT_ADDR@';$$
+CALL klk_network_interface_address_add(@address_ext, @nwresourceguid_ext, 
+     		@ipaddress_ext, @ipmask, @result);$$
+
+-- setup routes 
+
+SET @proto = '@NETWORK_PROTO_TCPIP@';$$
+
+SET @route1 = '@NET_TEST_ROUTE1_UUID@';$$
+SET @name1 = '@NET_TEST_ROUTE1_NAME@';$$
+SET @host1 = '@NET_TEST_ROUTE1_ADDR@';$$
+SET @port1 = @NET_TEST_ROUTE1_PORT@;$$
+CALL klk_network_route_add(@route1, @name1, 
+     @address, @host1, @port1, @proto, @result);$$
+
+SET @proto = '@NETWORK_PROTO_UDP@';$$
+
+SET @route2 = '@NET_TEST_ROUTE2_UUID@';$$
+SET @name2 = '@NET_TEST_ROUTE2_NAME@';$$
+SET @host2 = '@NET_TEST_ROUTE2_ADDR@';$$
+SET @port2 = @NET_TEST_ROUTE2_PORT@;$$
+CALL klk_network_route_add(@route2, @name2, 
+     @address, @host2, @port2, @proto, @result);$$
+
+SET @route3 = '@NET_TEST_ROUTE3_UUID@';$$
+SET @name3 = '@NET_TEST_ROUTE3_NAME@';$$
+SET @host3 = '@NET_TEST_ROUTE3_ADDR@';$$
+SET @port3 = @NET_TEST_ROUTE3_PORT@;$$
+CALL klk_network_route_add(@route3, @name3, 
+     @address_add, @host3, @port3, @proto, @result);$$
+
+-- Lock route3 by that mediaserver
+CALL klk_network_route_lock(@route3, @nwresourceguid_add, @result);$$
+
+SET @route4 = '@NET_TEST_ROUTE4_UUID@';$$
+SET @name4 = '@NET_TEST_ROUTE4_NAME@';$$
+SET @host4 = '@NET_TEST_ROUTE4_ADDR@';$$
+SET @port4 = @NET_TEST_ROUTE4_PORT@;$$
+CALL klk_network_route_add(@route4, @name4, 
+     @address_ext, @host4, @port4, @proto, @result);$$

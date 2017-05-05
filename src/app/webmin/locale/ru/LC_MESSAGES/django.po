@@ -1,0 +1,851 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: 0.0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-03-31 19:47+0400\n"
+"PO-Revision-Date: 2009-08-28 HO:MI+ZONE\n"
+"Last-Translator: IVAN <ctapbiu@spbgasu.ru>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: .\core\models.py:14
+msgid "unique identifier"
+msgstr "идентификатор"
+
+#: .\core\models.py:35
+msgid "Host name"
+msgstr "Имя сервера"
+
+#: .\core\models.py:35
+msgid "server host name"
+msgstr "имя сервера"
+
+#: .\core\models.py:36 .\core\models.py:84
+msgid "Typical CPU-index"
+msgstr "Норма CPU"
+
+#: .\core\models.py:36 .\core\models.py:84
+msgid "typical cpu requirement index"
+msgstr "норма потребления cpu"
+
+#: .\core\models.py:37 .\core\models.py:85
+msgid "Max CPU-index"
+msgstr "Пик CPU"
+
+#: .\core\models.py:37 .\core\models.py:85
+msgid "peak cpu requirement index"
+msgstr "пик потребления cpu"
+
+#: .\core\models.py:43 .\core\models.py:70 .\core\models.py:101
+#: .\core\models.py:143 .\core\models.py:189 .\dvbstreamer\models.py:28
+#: .\network\models.py:83
+msgid "Host"
+msgstr "Хост"
+
+#: .\core\models.py:44
+msgid "Hosts"
+msgstr "Хосты"
+
+#: .\core\models.py:50 .\core\models.py:204 .\dvb\models.py:62
+#: .\network\models.py:81
+msgid "Name"
+msgstr "Название"
+
+#: .\core\models.py:51 .\core\models.py:71 .\core\models.py:86
+#: .\core\models.py:130 .\core\models.py:146 .\core\models.py:160
+#: .\dvb\models.py:9 .\dvb\models.py:22 .\dvb\models.py:36
+#: .\httpsrc\models.py:14 .\network\models.py:10 .\network\models.py:24
+#: .\network\models.py:68
+msgid "Description"
+msgstr "Описание"
+
+#: .\core\models.py:51 .\core\models.py:71 .\core\models.py:86
+#: .\core\models.py:130 .\core\models.py:146 .\core\models.py:160
+#: .\dvb\models.py:9 .\dvb\models.py:22 .\dvb\models.py:36
+#: .\httpsrc\models.py:14 .\network\models.py:10 .\network\models.py:24
+#: .\network\models.py:68
+msgid "remark"
+msgstr "пометка"
+
+#: .\core\models.py:57 .\httpstreamer\models.py:11
+msgid "Media type"
+msgstr "Тип контента"
+
+#: .\core\models.py:58
+msgid "Media types"
+msgstr "Типы контента"
+
+#: .\core\models.py:64
+msgid "Appliction name"
+msgstr "Имя приложения"
+
+#: .\core\models.py:64
+msgid "application name"
+msgstr "имя приложения"
+
+#: .\core\models.py:66 .\core\models.py:176 .\dvbstreamer\models.py:13
+msgid "Enabled"
+msgstr "Вкл"
+
+#: .\core\models.py:66
+msgid "is the application activated by the user"
+msgstr "активировано ли пиложение пользователем"
+
+#: .\core\models.py:67
+msgid "Status"
+msgstr "Статус"
+
+#: .\core\models.py:67
+msgid ""
+"is the kalinka cluster currently executing this application, 0 = no, 1 = yes"
+msgstr "запущено ли приложение на кластере, 0 = нет, 1 = да(мб лучше boolean?)"
+
+#: .\core\models.py:69 .\dvbstreamer\models.py:16
+msgid "Priority"
+msgstr "Приоритет"
+
+#: .\core\models.py:69
+msgid "application priority, 0 = most"
+msgstr "приоритет приложения, 0 = наивысший"
+
+#: .\core\models.py:70
+msgid "prefered host for this application"
+msgstr "предпочтительный хост для этого приложения"
+
+#: .\core\models.py:77 .\core\models.py:99 .\httpstreamer\models.py:24
+msgid "Application"
+msgstr "Приложение"
+
+#: .\core\models.py:78
+msgid "Applications"
+msgstr "Приложения"
+
+#: .\core\models.py:92 .\core\models.py:100
+msgid "Module type"
+msgstr "Тип модуля"
+
+#: .\core\models.py:93
+msgid "Module types"
+msgstr "Типы модулей"
+
+#: .\core\models.py:99
+msgid "references the application which requires this module to load"
+msgstr "приложение, которое требует загрузки этого модуля"
+
+#: .\core\models.py:100
+msgid "module type"
+msgstr "тип модуля"
+
+#: .\core\models.py:101 .\core\models.py:143 .\core\models.py:189
+#: .\dvbstreamer\models.py:28
+msgid "host"
+msgstr "хост"
+
+#: .\core\models.py:107
+msgid "Module allocation"
+msgstr "Привязка модуля"
+
+#: .\core\models.py:108
+msgid "Module allocations"
+msgstr "Привязки модулей"
+
+#: .\core\models.py:129 .\core\models.py:145 .\core\models.py:159
+#: .\core\models.py:175 .\dvb\models.py:66
+msgid "Bandwidth"
+msgstr "Полоса пропускания"
+
+#: .\core\models.py:129
+msgid "bandwidth in khz"
+msgstr "полоса пропускания в кГц"
+
+#: .\core\models.py:136 .\core\models.py:144
+msgid "Bus type"
+msgstr "Тип шины"
+
+#: .\core\models.py:137
+msgid "Bus types"
+msgstr "Типы шин"
+
+#: .\core\models.py:144
+msgid "bus type"
+msgstr "тип шины"
+
+#: .\core\models.py:145
+msgid "reserved take bandwidth in khz"
+msgstr "резервируемая полоса пропускания в кГц"
+
+#: .\core\models.py:149
+#, python-format
+msgid "%s (%d kHz) @ %s"
+msgstr "%s (%d кГц) @ %s"
+
+#: .\core\models.py:152 .\core\models.py:173
+msgid "Bus"
+msgstr "Шина"
+
+#: .\core\models.py:153
+msgid "Buses"
+msgstr "Шины"
+
+#: .\core\models.py:159
+msgid "max allowed bandwidth in MHz"
+msgstr "максимально допустимая полоса пропускания в МГц"
+
+#: .\core\models.py:163
+#, python-format
+msgid "%s (%d MHz)"
+msgstr "%s (%d МГц)"
+
+#: .\core\models.py:166 .\core\models.py:174
+msgid "Resource type"
+msgstr "Тип ресурса"
+
+#: .\core\models.py:167
+msgid "Resource types"
+msgstr "Типы ресурсов"
+
+#: .\core\models.py:173
+msgid "bus"
+msgstr "шина"
+
+#: .\core\models.py:174 .\dvb\models.py:50
+msgid "resource type"
+msgstr "тип ресурса"
+
+#: .\core\models.py:175
+msgid "taken bandwdith in khz"
+msgstr "потребляемая полоса пропускания в кГц"
+
+#: .\core\models.py:176
+msgid "resource available for use"
+msgstr "ресурс доступен для использования"
+
+#: .\core\models.py:179
+#, python-format
+msgid "%s on %s @ %s"
+msgstr "%s на %s @ %s"
+
+#: .\core\models.py:182 .\dvb\models.py:55
+msgid "Resource"
+msgstr "Ресурс"
+
+#: .\core\models.py:183 .\dvb\models.py:56
+msgid "Resources"
+msgstr "Ресурсы"
+
+#: .\core\models.py:190 .\network\models.py:82
+msgid "Address"
+msgstr "Адрес"
+
+#: .\core\models.py:191 .\network\models.py:85
+msgid "Port"
+msgstr "Порт"
+
+#: .\core\models.py:192
+msgid "In use"
+msgstr "Используется"
+
+#: .\core\models.py:198
+msgid "Adapter"
+msgstr "Адаптор"
+
+#: .\core\models.py:199
+msgid "Adapters"
+msgstr "Адапторы"
+
+#: .\core\models.py:210
+msgid "File type"
+msgstr "Тип файла"
+
+#: .\core\models.py:211
+msgid "File types"
+msgstr "Типы файлов"
+
+#: .\core\models.py:218
+msgid "File name"
+msgstr "Имя файла"
+
+#: .\core\models.py:219
+msgid "File path"
+msgstr "Путь к файлу"
+
+#: .\core\models.py:227
+msgid "File"
+msgstr "Файл"
+
+#: .\core\models.py:228
+msgid "Files"
+msgstr "Файлы"
+
+#: .\dvb\models.py:15
+msgid "DVB type"
+msgstr "Тип DVB"
+
+#: .\dvb\models.py:16
+msgid "DVB types"
+msgstr "Типы DVB"
+
+#: .\dvb\models.py:28 .\dvb\models.py:35
+msgid "Signal source type"
+msgstr "Тип источника сигнала"
+
+#: .\dvb\models.py:29
+msgid "Signal source types"
+msgstr "Типы источников сигнала"
+
+#: .\dvb\models.py:42 .\dvb\models.py:65
+msgid "Signal source"
+msgstr "Источник сигнала"
+
+#: .\dvb\models.py:43
+msgid "Signal sources"
+msgstr "Источники сигнала"
+
+#: .\dvb\models.py:49
+msgid "dvb type"
+msgstr "тип dvb"
+
+#: .\dvb\models.py:62
+msgid "channel name"
+msgstr "название канала"
+
+#: .\dvb\models.py:63
+msgid "Number"
+msgstr "Номер"
+
+#: .\dvb\models.py:63
+msgid "channel number"
+msgstr "номер канала"
+
+#: .\dvb\models.py:66
+msgid "bandwidth taken"
+msgstr "занимаемая полоса пропускания"
+
+#: .\dvb\models.py:73 .\dvbstreamer\models.py:11
+msgid "Channel"
+msgstr "Канал"
+
+#: .\dvb\models.py:74
+msgid "Channels"
+msgstr "Каналы"
+
+#: .\dvb\models.py:81 .\dvb\models.py:94 .\dvb\models.py:110
+msgid "Frequency"
+msgstr "Частота"
+
+#: .\dvb\models.py:81 .\dvb\models.py:94 .\dvb\models.py:110
+msgid "tuned frequency"
+msgstr "настроенная частота"
+
+#: .\dvb\models.py:82
+msgid "DISEqC"
+msgstr ""
+
+#: .\dvb\models.py:82
+msgid "DISEqC selected source null=disabled 0..7"
+msgstr "DISEqC выбранного источника null=выкл (0..7)"
+
+#: .\dvb\models.py:83
+msgid "Polarity"
+msgstr "Поляризация"
+
+#: .\dvb\models.py:83
+msgid "polarity 0=horizontal; 1=vertical"
+msgstr "поляризация 0=гориз; 1=вертик"
+
+#: .\dvb\models.py:84 .\dvb\models.py:111
+msgid "Symbol rate"
+msgstr "Символьная частота"
+
+#: .\dvb\models.py:84 .\dvb\models.py:111
+msgid "symbol rate 0..2147483647"
+msgstr "символьная скорость 0..2147483647"
+
+#: .\dvb\models.py:85 .\dvb\models.py:96
+msgid "Code rate HP"
+msgstr ""
+
+#: .\dvb\models.py:85 .\dvb\models.py:96
+msgid ""
+"High priority code rate 0=none, 1=1/2, 2=2/3, 3=3/4, 4=4/5, 5=5/6, 6=6/7, "
+"8=8/9, 9=Auto"
+msgstr ""
+"Приоритетная частота кодировки 0=нет, 1=1/2, 2=2/3, 3=3/4, 4=4/5, 5=5/6, "
+"6=6/7, 8=8/9, 9=Авто"
+
+#: .\dvb\models.py:88
+msgid "Satellite channel"
+msgstr "Спутниковый канал"
+
+#: .\dvb\models.py:89
+msgid "Satellite channels"
+msgstr "Спутниковые каналы"
+
+#: .\dvb\models.py:95
+msgid "DVB bandwidth"
+msgstr "Полоса пропускания DVB"
+
+#: .\dvb\models.py:95
+msgid "Bandwidth 0=8, 1=7, 2=6, 3=Auto"
+msgstr "Полоса пропускания 0=8, 1=7, 2=6, 3=Авто"
+
+#: .\dvb\models.py:97
+msgid "Code rate LP"
+msgstr ""
+
+#: .\dvb\models.py:97
+msgid ""
+"Low priority code rate 0=none, 1=1/2, 2=2/3, 3=3/4, 4=4/5, 5=5/6, 6=6/7, "
+"8=8/9, 9=Auto"
+msgstr ""
+"Низкао-приоритетная частота кодировки 0=нет, 1=1/2, 2=2/3, 3=3/4, 4=4/5, "
+"5=5/6, 6=6/7, 8=8/9, 9=Авто"
+
+#: .\dvb\models.py:98
+msgid "Modulation"
+msgstr "Модуляция"
+
+#: .\dvb\models.py:98
+msgid ""
+"Modulation 0=QPSK, 1=QAM16, 2=QAM32, 3=QAM64, 4=QAM128, 5=QAM256, 6=AUTO"
+msgstr ""
+"Модуляция 0=QPSK, 1=QAM16, 2=QAM32, 3=QAM64, 4=QAM128, 5=QAM256, 6=АВТО"
+
+#: .\dvb\models.py:99
+msgid "Transmode"
+msgstr "Трансподер"
+
+#: .\dvb\models.py:99
+msgid "Transmission mode 0=2k, 1=8k, 2=Auto"
+msgstr "Режим передачи 0=2k, 1=8k, 2=Авто"
+
+#: .\dvb\models.py:100
+msgid "Hierarchy"
+msgstr "Иерархия"
+
+#: .\dvb\models.py:101
+msgid "Guard"
+msgstr "Защита"
+
+#: .\dvb\models.py:104
+msgid "Digital TV channel"
+msgstr "Канал цифорвого ТВ"
+
+#: .\dvb\models.py:105
+msgid "Digital TV channels"
+msgstr "Каналы цифорвого ТВ"
+
+#: .\dvb\models.py:114
+msgid "C channel"
+msgstr "С-канал??"
+
+#: .\dvb\models.py:115
+msgid "C channels"
+msgstr "С-каналы??"
+
+#: .\dvbstreamer\models.py:11
+msgid "cannel name"
+msgstr "название канала"
+
+#: .\dvbstreamer\models.py:12 .\network\models.py:94
+msgid "Route"
+msgstr "Маршрут"
+
+#: .\dvbstreamer\models.py:12
+msgid "route"
+msgstr "маршрут"
+
+#: .\dvbstreamer\models.py:13
+msgid "enabled"
+msgstr "включено"
+
+#: .\dvbstreamer\models.py:14
+msgid "Lock host"
+msgstr "Блокировка сервера"
+
+#: .\dvbstreamer\models.py:15
+msgid "Lock timestamp"
+msgstr "Время блокировки"
+
+#: .\dvbstreamer\models.py:19
+#, python-format
+msgid "%s\tto\t%s"
+msgstr ""
+
+#: .\dvbstreamer\models.py:22 .\dvbstreamer\models.py:27
+msgid "Station"
+msgstr "Станция"
+
+#: .\dvbstreamer\models.py:23
+msgid "Stations"
+msgstr "Станции"
+
+#: .\dvbstreamer\models.py:27
+msgid "station"
+msgstr "станция"
+
+#: .\dvbstreamer\models.py:34
+msgid "Failed station"
+msgstr "Упавшая станция"
+
+#: .\dvbstreamer\models.py:35
+msgid "Failed stations"
+msgstr "Упавшие станции"
+
+#: .\httpsrc\models.py:9
+msgid "Title"
+msgstr "Заголовок"
+
+#: .\httpsrc\models.py:10
+msgid "Source address"
+msgstr "Адрес источника"
+
+#: .\httpsrc\models.py:12 .\templates\auth\pass_change.html.py:16
+msgid "Login"
+msgstr "Вход"
+
+#: .\httpsrc\models.py:12
+msgid "login for http-auth"
+msgstr "логин для авторизации HTTP"
+
+#: .\httpsrc\models.py:13
+msgid "Password"
+msgstr "Пароль"
+
+#: .\httpsrc\models.py:13
+msgid "password for http-auth(will be stored as plain text)"
+msgstr "пароль для авторизации HTTP (хранится в открытом виде)"
+
+#: .\httpsrc\models.py:20
+msgid "HttpSource"
+msgstr "Источник HTTP"
+
+#: .\httpsrc\models.py:21
+msgid "HttpSources"
+msgstr "Источники HTTP"
+
+#: .\httpstreamer\models.py:11
+msgid "media type"
+msgstr "тип контента"
+
+#: .\httpstreamer\models.py:17 .\httpstreamer\models.py:41
+msgid "Http-streamer Media type"
+msgstr "Тип контента для HTTP-streamer"
+
+#: .\httpstreamer\models.py:18
+msgid "Http-streamer Media types"
+msgstr "Типы контента для HTTP-streamer"
+
+#: .\httpstreamer\models.py:25
+msgid "Out route"
+msgstr "Исходящий маршрут"
+
+#: .\httpstreamer\models.py:31
+msgid "Http-streamer"
+msgstr "HTTP-стример"
+
+#: .\httpstreamer\models.py:32
+msgid "Http-streamers"
+msgstr "HTTP-стримеры"
+
+#: .\httpstreamer\models.py:38
+msgid "Streamer"
+msgstr "Стример"
+
+#: .\httpstreamer\models.py:39
+msgid "Input route"
+msgstr "Входящий маршрут"
+
+#: .\httpstreamer\models.py:40
+msgid "Output path"
+msgstr "Адресный путь"
+
+#: .\httpstreamer\models.py:40
+msgid "out path"
+msgstr "адресный путь"
+
+#: .\httpstreamer\models.py:43
+msgid "Allowed to"
+msgstr "Разрешения"
+
+#: .\httpstreamer\models.py:49
+msgid "Http-streamer Route"
+msgstr "Маршрут HTTP-стримера"
+
+#: .\httpstreamer\models.py:50
+msgid "Http-streamer Routes"
+msgstr "Маршруты HTTP-стримеров"
+
+#: .\network\models.py:9
+msgid "max allowed bandwidth"
+msgstr "максимально допустимая полоса пропускания в МГц"
+
+#: .\network\models.py:16
+msgid "Network type"
+msgstr "Тип сети"
+
+#: .\network\models.py:17
+msgid "Network types"
+msgstr "Типы сети"
+
+#: .\network\models.py:23
+msgid "network media type"
+msgstr "тип сетевой среды"
+
+#: .\network\models.py:30 .\network\models.py:37
+msgid "Trunk"
+msgstr "Транк"
+
+#: .\network\models.py:31
+msgid "Trunks"
+msgstr "Транки"
+
+#: .\network\models.py:37
+msgid "trunk"
+msgstr "транк"
+
+#: .\network\models.py:38
+msgid "Node name"
+msgstr "Имя узла"
+
+#: .\network\models.py:38
+msgid "device name, e.g. eth0"
+msgstr "имя устройства, например, eth0"
+
+#: .\network\models.py:44
+msgid "Interface resource"
+msgstr "Ресурс интерфейса"
+
+#: .\network\models.py:45
+msgid "Interfaces resources"
+msgstr "Ресурсы интерфейсов"
+
+#: .\network\models.py:51
+msgid "resource"
+msgstr "ресурс"
+
+#: .\network\models.py:52
+msgid "IPv4 or IPv6 network address"
+msgstr "сетевой адрес IPv4 или IPv6 "
+
+#: .\network\models.py:53
+msgid "network mask"
+msgstr "маска сети"
+
+#: .\network\models.py:60
+msgid "Interface address"
+msgstr "Адрес интерфейса"
+
+#: .\network\models.py:61
+msgid "Interface addresses"
+msgstr "Адреса интерфейсов"
+
+#: .\network\models.py:67
+msgid "Protocol name"
+msgstr "Имя протокола"
+
+#: .\network\models.py:74 .\network\models.py:86
+msgid "Protocol"
+msgstr "Протокол"
+
+#: .\network\models.py:75
+msgid "Protocols"
+msgstr "Протоколы"
+
+#: .\network\models.py:82
+msgid "interface address"
+msgstr "адрес интерфейса"
+
+#: .\network\models.py:83
+msgid "multicast group, hostname or network address"
+msgstr "группа мульти-каст, имя сервера или адрес сети"
+
+#: .\network\models.py:85
+msgid "network port to send to 0 - 65535"
+msgstr "сетевой порт для отправки (0 - 65535)"
+
+#: .\network\models.py:95
+msgid "Routes"
+msgstr "Маршруты"
+
+#: .\templates\base.html.py:32
+msgid "Welcome,"
+msgstr "Добро пожаловать,"
+
+#: .\templates\base.html.py:34
+msgid "Change password"
+msgstr "Сменить пароль"
+
+#: .\templates\base.html.py:35 .\templates\light\watch.html.py:19
+#: .\templates\light\watch.html.py:34
+msgid "Log out"
+msgstr "Выйти"
+
+#: .\templates\base.html.py:43
+msgid "Home"
+msgstr "Начало"
+
+#: .\templates\auth\login.html.py:11
+msgid "Please, log in"
+msgstr "Пожалуйста, представьтесь"
+
+#: .\templates\auth\login.html.py:15
+msgid "Your username and password didn't match. Please try again."
+msgstr "Имя и пароль не приняты. Пожалуйста, попробуйте еще раз."
+
+#: .\templates\auth\login.html.py:19
+msgid "Username:"
+msgstr "Имя:"
+
+#: .\templates\auth\login.html.py:22
+msgid "Password:"
+msgstr "Пароль:"
+
+#: .\templates\auth\login.html.py:26
+msgid "Log in"
+msgstr "Войти"
+
+#: .\templates\auth\logout.html.py:11 .\templates\auth\pass_change.html.py:4
+msgid "Auth"
+msgstr "Авторизация"
+
+#: .\templates\auth\logout.html.py:14
+msgid "Session was closed"
+msgstr "Сессия была завершена"
+
+#: .\templates\auth\logout.html.py:16
+msgid "Log in again"
+msgstr "Повторный вход"
+
+#: .\templates\front\test.html.py:4
+msgid "Test page"
+msgstr "Тестовая страница"
+
+#: .\templates\front\test.html.py:6
+msgid "Testing"
+msgstr "Тестирование"
+
+#: .\templates\front\watch.html.py:4
+msgid "Choose player and watch channels in you favorite browser"
+msgstr "Выберите проигрыватель и смотрите каналы в Вашем любимом браузере"
+
+#: .\templates\front\watch.html.py:6 .\templates\light\watch.html.py:6
+msgid "Player"
+msgstr "Проигрыватель"
+
+#: .\templates\front\watch.html.py:28
+msgid "VLC-plugin test-page by Kalinka"
+msgstr "Kalinka: Тестовая страница vlc-примочки"
+
+#: .\templates\front\watch.html.py:47
+msgid "Play/Pause"
+msgstr "Играть/Пауза"
+
+#: .\templates\front\watch.html.py:48
+msgid "Stop"
+msgstr "Стоп"
+
+#: .\templates\front\watch.html.py:49
+msgid "Mute"
+msgstr "Тихо"
+
+#: .\templates\front\watch.html.py:56 .\templates\front\watch.html.py:66
+msgid "Flash-player test-page by Kalinka"
+msgstr "Kalinka: Тестовая страница flash-проигрывателя"
+
+#: .\templates\front\watch.html.py:67
+msgid "Get Flash Player"
+msgstr "Получить Flash проигрыватель"
+
+#: .\templates\front\watch.html.py:67
+msgid ", to watch video."
+msgstr ", чтобы смотреть видео"
+
+#: .\templates\front\watch.html.py:79
+msgid "Flowplayer on the way"
+msgstr "Flowplayer в деле"
+
+#: .\templates\front\watch.html.py:119
+msgid "Let's try youtube player"
+msgstr ""
+
+#: .\templates\light\watch.html.py:4
+msgid "Light"
+msgstr "Мини-страничка"
+
+#: .\templates\light\watch.html.py:9
+msgid "Aviabled channels"
+msgstr "Доступные каналы"
+
+#: .\templates\light\watch.html.py:17
+msgid "Full version"
+msgstr "Полная версия"
+
+#: .\templates\light\watch.html.py:23
+msgid "Flash-player with Kalinka-streamer"
+msgstr "Flash-проигрыватель с сервером Kalinka"
+
+#: .\transcode\models.py:15 .\transcode\models.py:23
+msgid "Source type"
+msgstr "Тип источника"
+
+#: .\transcode\models.py:16
+msgid "Source types"
+msgstr "Типы источников"
+
+#: .\transcode\models.py:31
+msgid "Transcode source"
+msgstr "Источник для кодировки"
+
+#: .\transcode\models.py:32
+msgid "Transcode sources"
+msgstr "Источники для кодировки"
+
+#: .\transcode\models.py:49
+msgid "Task"
+msgstr "Задача"
+
+#: .\transcode\models.py:50
+msgid "Tasks"
+msgstr "Задачи"
+
+#~ msgid "Watch channels with vlc-plugin for mozilla FF and m$ IE"
+#~ msgstr "Смотри каналы с vlc-примочкой для mozilla FF и m$ IE"
+
+#~ msgid "module"
+#~ msgstr "модуль"
+
+#~ msgid "timestamp of event"
+#~ msgstr "время события"
+
+#~ msgid "Log"
+#~ msgstr "Запись журнала"
+
+#~ msgid "Logs"
+#~ msgstr "Записи журнала"
+
+#~ msgid "Satellite PID"
+#~ msgstr "Спутниковый PID"
+
+#~ msgid "Satellite PIDs"
+#~ msgstr "Спутниковые PIDы"
+
+#~ msgid "Digital TV PID"
+#~ msgstr "PID цифорвого ТВ"
+
+#~ msgid "Digital TV PIDs"
+#~ msgstr "PIDы цифорвого ТВ"
+
+#~ msgid "Tuned channel"
+#~ msgstr "Настроенный канал"
+
+#~ msgid "Tuned channels"
+#~ msgstr "Настроенные каналы"
+
+#~ msgid "Used channel"
+#~ msgstr "Используемый канал"
+
+#~ msgid "Used channels"
+#~ msgstr "Используемые каналы"

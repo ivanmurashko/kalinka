@@ -1,0 +1,1 @@
+debian/kalinka-server/usr/share/snmp/mibs/*.txt /usr/share/snmp/mibs

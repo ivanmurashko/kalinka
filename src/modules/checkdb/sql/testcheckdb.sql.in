@@ -1,0 +1,35 @@
+DELIMITER $$
+
+-- the Check DB test table --
+-- the table keeps a garbage data --
+DROP TABLE IF EXISTS `test_checkdb`;$$
+
+CREATE TABLE `test_checkdb` (
+       `id` VARCHAR(40) NOT NULL,
+       `module` VARCHAR(40) NOT NULL DEFAULT '',
+       PRIMARY KEY (`id`)
+)
+ENGINE = InnoDB DEFAULT CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Stored procedure that will be called for the klktest_checkdb updates --
+DROP PROCEDURE IF EXISTS `test_checkdb_add`$$
+CREATE PROCEDURE `test_checkdb_add` (
+       OUT return_value INT
+)
+BEGIN
+	DECLARE uuid VARCHAR(40);
+	SET uuid = UUID();
+	INSERT INTO test_checkdb(id, module) VALUES(uuid, '@TESTMODULE_CHECKDB_ID@');
+	SET return_value = 0;
+END$$
+
+-- Triger for log filling
+DROP TRIGGER IF EXISTS `test_checkdb_trigger`$$
+
+CREATE TRIGGER `test_checkdb_trigger` AFTER INSERT ON `test_checkdb`
+FOR EACH ROW
+    CALL klk_log_add('@TESTMODULE_CHECKDB_ID@')$$
+
+DELIMITER ;

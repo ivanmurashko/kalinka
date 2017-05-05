@@ -1,0 +1,130 @@
+/**
+   @file defines.h
+   @brief This file is part of Kalinka mediaserver.
+   @author ipp <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2008/11/07 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLKADAPTER_DEFINES_H
+#define KLKADAPTER_DEFINES_H
+
+#include <string>
+
+namespace klk
+{
+    namespace adapter
+    {
+        /** @defgroup grAdapterModule Adapter module
+
+            Adapter module uses ICE from ZeroC as IPC framefork
+
+            The ICE generated interfaces can be viewd
+            <A HREF="ice/_sindex.html"> here </A>
+
+            @ingroup grModule
+            @{
+        */
+
+        /// Module ID
+        const std::string MODID = "@MODULE_ADAPTER_ID@";
+
+        /// Module's name
+        const std::string MODNAME = "@MODULE_ADAPTER_NAME@";
+
+        namespace obj
+        {
+            /** @defgroup grAdapterModuleObjects Objects
+
+                @brief Exported objects ids
+
+                The @ref grAdapterModule "adapter module" exports several
+                objects to 'external world'. The group keeps identifiers for
+                the exported objects.
+
+                @ingroup grAdapterModule
+                @{
+            */
+
+            /**
+               @brief The messages object adapter
+
+               The addapter is used to access to
+               klk::IModuleFactory::sendMessage
+
+               Thus a remote application can send a message to the
+               main mediaserver application
+            */
+            const std::string MESSAGES = "@MODULE_ADAPTER_MESSAGES_OBJECT@";
+
+            /**
+               @brief The resources object adapter
+
+               The addapter is used to access to klk::IResources
+
+               Thus an application can access info about resources
+               provided by the service.
+            */
+            const std::string RESOURCES = "@MODULE_ADAPTER_RESOURCES_OBJECT@";
+
+            /**
+               @brief The modules object adapter
+
+               The addapter is used to access to klk::IModuleFactory to
+               load/uload modules
+            */
+            const std::string MODULES = "@MODULE_ADAPTER_MODULES_OBJECT@";
+
+            /**
+               @brief The devs object adapter
+
+               The addapter is used to access to klk::IDev
+
+               Thus an application can access info about a particular dev
+               provided by the service.
+            */
+            const std::string DEV = "@MODULE_ADAPTER_DEV_OBJECT@";
+
+            /** @} */
+        }
+
+        /**
+           ICE connection string
+
+           Instruct the adapter to listen for incoming requests
+           using the default protocol (TCP/IP) at port number 0
+        */
+        const std::string ICE_CONNECTION_STR = "default -p 0";
+        /** @} */
+    }
+}
+
+#endif //KLKADAPTER_DEFINES_H

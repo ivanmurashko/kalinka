@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Test scripts for RTP tests
+#
+# It creates a pipeline that do stream to a file and via rtp
+# Thus it will be possible to compare RTP result with real value 
+# stored at the file
+
+@GSTLAUNCH@ gstrtpbin name=rtpbin \
+ filesrc location=@TRANSCODE_TEST_FOLDER@/test.avi ! decodebin name=d \
+ d. ! ffmpegcolorspace ! "video/x-raw-yuv",format=\(fourcc\)I420 ! \
+      ffenc_mpeg2video ! mpegtsmux ! tee name=t \
+ t. ! rtpmp2tpay ! rtpbin.send_rtp_sink_0 rtpbin.send_rtp_src_0 ! \
+      udpsink port=@TRANSCODE_TESTROUTE_PORT@ \
+         host=@TRANSCODE_TESTROUTE_ADDR@ \
+         auto-multicast=false loop=false \
+ t. ! queue ! filesink location=@TRANSCODE_TESTOUTPUTFILEMPEGTS_PATH@ > /dev/null 2>&1
+

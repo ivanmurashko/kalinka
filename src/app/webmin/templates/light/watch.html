@@ -1,0 +1,37 @@
+{% extends "light/base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Light" %}{% endblock %}
+
+{% block branding %}{% trans "Player" %}{% endblock %}
+
+{% block sidebar-hidden %}
+<h3>{% trans "Aviabled channels" %}</h3>
+<ul id="playlist">
+    {% for track in playlist.tracks %}
+        <li><a class="channel toggler" href="{% url light.views.watch %}?link={{ track.link|escape }}&title={{ track.title|escape }}">{{ track.title }}</a></li>
+    {% endfor %}
+</ul>
+<br class="clear" />
+{% if user.is_superuser %}
+    <a href="{% url kalinka.front.views.watch %}">{% trans "Full version" %}</a><br/>
+{% endif %}
+<a href="{% url django.contrib.auth.views.logout %}">{% trans "Log out" %}</a>
+{% endblock %}
+
+{% block content %}
+<!--<h2>{% trans "Flash-player with Kalinka-streamer" %}</h2>-->
+<div id="player-container">
+    <object type="application/x-shockwave-flash" data="/iface/media/uppod.swf" height="480" width="640">
+        <param name="allowFullScreen" value="true" />
+        <param name="allowScriptAccess" value="always" />
+        <param name="wmode" value="transparent" />
+        <param name="movie" value="/iface/media/uppod.swf" />
+        <param name="FlashVars" value='autoplay=0&amp;st=62AEcsal1C0V9vA1X1kQ3Q3Q3Q31kl1k0nTWwjG3NkZbSal1SQoF3wmRndMJzC5b7uYl1CiMkbk1ktj1TamQ3h9sQoF3wkbkafztj1nzC5keuOIc9kaJ1kOkZ2MJzCH5kev0ktj1vL2NAXzC5Ttj1692Mt7T30cLWNkbk1fp53Q3pvNXZvw6YW6wfHB5czsNcYB5Nj63Q3F30cTCwX7pvQXZm0VT2UhTdd0X1sNkTWwWTSAQopBwnQB56L2MrXTSUhTd0yp2wV49B5LFdwbzkOkayBwnzBGDRWNkbk71npdQVQv1l1Swbkbk16LWwDzkOk54dGIF31XAuYWt8j1mzC5k1kOk1J70vFdG6I2NDzfUrY&amp;tools=2&amp;skin=black&amp;volume=70&amp;pl={"playlist":[{% for track in playlist.tracks %}{% if not forloop.first %},{% endif %}{ "file": "{{ track.link|escape }}", "comment": "{{ track.title|escape }}" }{% endfor %}]}' />
+    </object>    
+</div>
+<br class="clear" />
+<div class="float-right"><a href="{% url django.contrib.auth.views.logout %}">{% trans "Log out" %}</a></div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

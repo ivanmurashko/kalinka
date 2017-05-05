@@ -1,0 +1,111 @@
+/**
+   @file msg.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2011/01/08 created by ipp (Ivan Murashko)
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#include <string>
+
+namespace klk
+{
+    namespace msg
+    {
+        namespace key
+        {
+            /** @addtogroup grMessageID
+                @{
+            */
+
+            /// Module info uuid field
+            const std::string MODINFOUUID = "modinfo_uuid";
+
+            /// Module info name field
+            const std::string MODINFONAME = "modinfo_name";
+
+            /// The CLI command's result
+            const std::string CLIRESULT = "@KLK_MSG_KEY_CLIRESULT@";
+
+            /// The error description holder key
+            const std::string ERROR = "@KLK_MSG_KEY_ERROR@";
+
+            /// The dev type
+            const std::string TYPE = "devtype";
+
+            /// Resource id field (key name
+            const std::string RESOURCE = "resource_id";
+
+            /// Station id field (key name
+            const std::string STATION = "station_id";
+
+            /// Status field
+            const std::string STATUS = "@KLK_MSG_KEY_STATUS@";
+
+            /// OK status field
+            const std::string OK = "@KLK_MSG_KEY_OK@";
+
+            /// Result field
+            const std::string RESULT = "@KLK_MSG_KEY_RESULT@";
+
+            /// OK status field
+            const std::string FAILED = "failed";
+
+            /**
+               DVB adapter info
+               has lock value
+            */
+            const std::string HASLOCK = "haslock";
+
+            /**
+               DVB adapter info
+               signal value
+            */
+            const std::string SIGNAL = "signal";
+
+            /**
+               DVB adapter info
+               snr value
+            */
+            const std::string SNR = "snr";
+
+            /**
+               DVB adapter info
+               unc value
+            */
+            const std::string UNC = "unc";
+
+            /**
+               DVB adapter info
+               ber value
+            */
+            const std::string BER = "ber";
+            /** @} */
+        }
+    }
+}

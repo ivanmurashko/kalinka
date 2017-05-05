@@ -1,0 +1,40 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- there is a test procedure that retrives 
+-- children paths by it's parent uuid
+DROP PROCEDURE IF EXISTS`klk_file_test_get_children`;$$
+CREATE PROCEDURE `klk_file_test_get_children` (
+	IN parent_uuid VARCHAR(40)
+) 
+BEGIN
+	SELECT klk_file.file_path AS file_path,
+	UNIX_TIMESTAMP(klk_file.start_time) AS start_time,
+	UNIX_TIMESTAMP(klk_file.end_time) AS end_time
+	FROM klk_file
+	WHERE klk_file.parent_uuid = parent_uuid AND 
+	klk_file.file <> klk_file.parent_uuid;
+END$$
+
+-- test data
+SET @uuid='@FILE_TEST_UUID1@';$$
+call klk_file_add(@uuid, '@FILE_TEST_NAME1@',
+     '@FILE_TEST_PATH1@', @hostguid, '@FILE_TYPE_REGULAR_UUID@', 
+	 @return_value);$$
+SET @uuid='@FILE_TEST_UUID2@';$$
+call klk_file_add(@uuid, '@FILE_TEST_NAME2@',
+     '@FILE_TEST_PATH2@', @hostguid, '@FILE_TYPE_REGULAR_UUID@', 
+	 @return_value);$$
+SET @uuid='@FILE_TEST_UUID3@';$$
+call klk_file_add(@uuid, '@FILE_TEST_NAME3@',
+     '@FILE_TEST_PATH3@', @hostguid, '@FILE_TYPE_FOLDER_UUID@', 
+	 @return_value);$$
+
+
+DELIMITER ;

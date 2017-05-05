@@ -1,0 +1,27 @@
+DELIMITER $$
+
+-- Stored procedure that retrives the latest changed record id --
+DROP PROCEDURE IF EXISTS `klk_checkdb_get_lastid`$$
+CREATE PROCEDURE `klk_checkdb_get_lastid` (
+       OUT return_id INT
+)
+BEGIN
+	SET return_id = NULL;
+	SELECT MAX(klk_log.id) FROM klk_log INTO return_id;
+	IF return_id IS NULL THEN
+		SET return_id = 0;
+	END IF;
+END$$
+
+-- Stored procedure that retrives all changed records with 
+-- id greater than parameter
+DROP PROCEDURE IF EXISTS `klk_checkdb_get_changed`$$
+CREATE PROCEDURE `klk_checkdb_get_changed` (
+       IN last_id INT
+)
+BEGIN
+	SELECT DISTINCT module_uuid FROM klk_log WHERE klk_log.id > last_id;
+END$$
+
+
+DELIMITER ;

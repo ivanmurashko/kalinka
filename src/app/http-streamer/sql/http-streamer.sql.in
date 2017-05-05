@@ -1,0 +1,318 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- application tables
+
+-- Media types valid for http streamer
+-- We need this table because not all media types are supported at http streamer but
+-- we want to set a constraint for the main http streamer application table
+DROP TABLE  IF EXISTS `klk_app_http_streamer_media_types`;$$ 
+CREATE TABLE `klk_app_http_streamer_media_types` (
+       `uuid` VARCHAR(40) NOT NULL DEFAULT '',       
+       PRIMARY KEY (`uuid`),
+       CONSTRAINT `fk_klk_app_http_streamer_uuid` FOREIGN KEY (`uuid`) REFERENCES `klk_media_types` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- http application 
+-- The table keeps info about output route info for the mediaserver
+DROP TABLE  IF EXISTS `klk_app_http_streamer`;$$ 
+CREATE TABLE `klk_app_http_streamer` (
+       `application` VARCHAR(40) NOT NULL DEFAULT '',       
+       `out_route` VARCHAR(40) NOT NULL DEFAULT '',
+       PRIMARY KEY (`application`),
+       CONSTRAINT `fk_klk_app_http_streamer_application` FOREIGN KEY (`application`) REFERENCES `klk_applications` (`application`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_http_streamer_route` FOREIGN KEY (`out_route`) REFERENCES `klk_network_routes` (`route`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- http application 
+-- The table keeps info about sink data and src data assosiated with the sink
+-- The sink is related to the current mediaserver and determines 
+-- the port number (data gotten from klk_app_http_streamer table)
+-- The src determines the port number and path for HTTP requests
+DROP TABLE  IF EXISTS `klk_app_http_streamer_route`;$$ 
+CREATE TABLE `klk_app_http_streamer_route` (
+       `uuid` VARCHAR(40) NOT NULL DEFAULT '',       
+       `application` VARCHAR(40) NOT NULL DEFAULT '',
+       `in_route` VARCHAR(40) NOT NULL DEFAULT '',
+       `out_path` VARCHAR(40) NOT NULL DEFAULT '',
+       `media_type` VARCHAR(40) NOT NULL DEFAULT '',
+       PRIMARY KEY (`uuid`),
+       UNIQUE KEY `in_record` (`in_route`, `application`),
+       UNIQUE KEY `out_record` (`out_path`, `application`),
+       CONSTRAINT `fk_klk_app_http_streamer_route_sink` FOREIGN KEY (`in_route`) REFERENCES `klk_network_routes` (`route`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_http_streamer_route_application` FOREIGN KEY (`application`) REFERENCES `klk_app_http_streamer` (`application`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_http_streamer_http_media_type` FOREIGN KEY (`media_type`) REFERENCES `klk_app_http_streamer_media_types` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Triggers for log filling
+DROP TRIGGER IF EXISTS `klk_app_http_streamer_insert`$$
+CREATE TRIGGER `klk_app_http_streamer_insert` AFTER INSERT ON `klk_app_http_streamer`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTP_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_app_http_streamer_update`$$
+CREATE TRIGGER `klk_app_http_streamer_update` AFTER UPDATE ON `klk_app_http_streamer`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTP_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_app_http_streamer_route_insert`$$
+CREATE TRIGGER `klk_app_http_streamer_route_insert` AFTER INSERT ON `klk_app_http_streamer_route`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTP_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_app_http_streamer_route_update`$$
+CREATE TRIGGER `klk_app_http_streamer_route_update` AFTER UPDATE ON `klk_app_http_streamer_route`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTP_ID@');$$
+
+DROP TRIGGER IF EXISTS `klk_app_http_streamer_route_delete`$$
+CREATE TRIGGER `klk_app_http_streamer_route_delete` AFTER DELETE ON `klk_app_http_streamer_route`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_HTTP_ID@');$$
+
+
+-- Procedure to add a media type
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_media_type_add`;$$
+CREATE PROCEDURE `klk_app_http_streamer_media_type_add` (
+	IN media_type VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	INSERT INTO klk_app_http_streamer_media_types(uuid)  VALUES  (media_type);
+	        		
+	SET return_value = 0;
+END;$$
+
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_media_type_list`;$$
+CREATE PROCEDURE `klk_app_http_streamer_media_type_list` (
+) 
+BEGIN
+	SELECT name FROM klk_media_types, klk_app_http_streamer_media_types
+	WHERE klk_media_types.uuid = klk_app_http_streamer_media_types.uuid;
+END;$$
+
+
+-- Procedure to set an application info --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_add`;$$
+CREATE PROCEDURE `klk_app_http_streamer_add` (
+  	IN application VARCHAR(40),
+	IN out_route VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	INSERT INTO klk_app_http_streamer(application, out_route) 
+		VALUES  (application, out_route);
+		        		
+	SET return_value = 0;
+END;$$
+
+
+
+-- Procedure to set an application info --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_update`;$$
+CREATE PROCEDURE `klk_app_http_streamer_update` (
+  	IN application VARCHAR(40),
+	IN out_route VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN	
+	DECLARE klktest_route VARCHAR(40);
+	DECLARE EXIT HANDLER FOR NOT FOUND  
+        CALL klk_app_http_streamer_add(application, out_route, return_value);
+
+	SELECT klk_app_http_streamer.out_route INTO klktest_route 
+	FROM klk_app_http_streamer
+	WHERE klk_app_http_streamer.application = application;
+
+	UPDATE	
+               klk_app_http_streamer
+       	SET
+               klk_app_http_streamer.out_route = out_route
+        WHERE
+               klk_app_http_streamer.application = application;
+		        		
+	SET return_value = 0;
+END;$$
+
+-- Procedure to set an application info --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_set`;$$
+CREATE PROCEDURE `klk_app_http_streamer_set` (
+  	IN application VARCHAR(40),
+	IN route_name VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE route_uuid VARCHAR(40);
+
+	SELECT klk_network_routes.route INTO route_uuid FROM klk_network_routes
+	WHERE klk_network_routes.name = route_name;
+
+	IF route_uuid IS NOT null THEN
+	   CALL klk_app_http_streamer_update(application, route_uuid, return_value);
+	   SET return_value = 0;
+	ELSE
+	   SET return_value = -1;
+	END IF;
+
+END;$$
+
+
+-- Procedure to set http routes --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_route_add`;$$
+CREATE PROCEDURE `klk_app_http_streamer_route_add` (
+        INOUT uuid VARCHAR(40),
+  	IN application VARCHAR(40),
+	IN in_route VARCHAR(40),	
+	IN out_path VARCHAR(40),
+	IN media_type VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	IF uuid IS null THEN
+		SET uuid = UUID();
+	END IF;
+
+	INSERT INTO klk_app_http_streamer_route(uuid, application, in_route, out_path, media_type) 
+	VALUES  (uuid, application, in_route, out_path, media_type);
+	        		
+	SET return_value = 0;
+END;$$
+
+-- Procedure to retrive basic configuration --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_get`;$$
+CREATE PROCEDURE `klk_app_http_streamer_get` (
+  	IN application VARCHAR(40),
+	OUT out_route VARCHAR(40),	
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	SELECT 
+		klk_app_http_streamer.out_route 
+	INTO
+		out_route
+	FROM 
+		klk_app_http_streamer
+	WHERE 
+		klk_app_http_streamer.application = application; 	
+
+	SET return_value = 0;
+END;$$
+
+-- Procedure to retrive input route configuration --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_route_get`;$$
+CREATE PROCEDURE `klk_app_http_streamer_route_get` (
+  	IN application VARCHAR(40)
+) 
+BEGIN
+	SELECT 
+	        klk_app_http_streamer_route.in_route,
+	        klk_app_http_streamer_route.out_path,
+		klk_media_types.name,
+		klk_app_http_streamer_media_types.uuid
+	FROM 
+		klk_app_http_streamer_route, klk_app_http_streamer_media_types,
+		klk_media_types
+	WHERE 
+		klk_app_http_streamer_route.application = application AND
+		klk_app_http_streamer_route.media_type = klk_app_http_streamer_media_types.uuid AND
+		klk_app_http_streamer_media_types.uuid = klk_media_types.uuid;
+END;$$
+
+-- Procedure to add input route configuration --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_route_add4cli`;$$
+CREATE PROCEDURE `klk_app_http_streamer_route_add4cli` (
+  	IN application VARCHAR(40),
+  	IN route_name VARCHAR(40),
+	IN out_path VARCHAR(40),
+	IN media_name VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE route_uuid VARCHAR(40);
+	DECLARE media_uuid VARCHAR(40);
+	DECLARE inroute_uuid VARCHAR(40);
+
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT 
+	        klk_network_routes.route
+	INTO 
+		route_uuid
+	FROM 
+		klk_network_routes
+	WHERE 
+		klk_network_routes.name = route_name;
+
+	SELECT 
+	        klk_app_http_streamer_media_types.uuid
+	INTO 
+		media_uuid
+	FROM 
+		klk_app_http_streamer_media_types, klk_media_types
+	WHERE 
+		klk_media_types.name = media_name AND
+		klk_app_http_streamer_media_types.uuid = klk_media_types.uuid;
+		
+	SET inroute_uuid = UUID();
+	CALL klk_app_http_streamer_route_add(inroute_uuid, application, 
+	route_uuid, out_path, media_uuid, return_value);
+END;$$
+
+-- Procedure to delete an input route configuration --
+DROP PROCEDURE IF EXISTS `klk_app_http_streamer_route_del_byname`;$$
+CREATE PROCEDURE `klk_app_http_streamer_route_del_byname` (
+  	IN name VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE route_uuid VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT 
+	        klk_app_http_streamer_route.in_route
+	INTO 
+		route_uuid
+	FROM 
+		klk_app_http_streamer_route, klk_network_routes
+	WHERE 
+		klk_network_routes.name = name AND
+		klk_network_routes.route = klk_app_http_streamer_route.in_route;
+
+       DELETE FROM klk_app_http_streamer_route WHERE 
+       klk_app_http_streamer_route.in_route = route_uuid;
+
+       SET return_value = 0;
+END;$$
+
+-- Several media types
+SET @media_type = '@MEDIA_TYPE_FLV@' ;$$
+CALL klk_app_http_streamer_media_type_add(@media_type, 
+     @return_value);$$ 
+
+SET @media_type = '@MEDIA_TYPE_TXT@' ;$$
+CALL klk_app_http_streamer_media_type_add(@media_type, 
+     @return_value);$$ 
+ 
+SET @media_type = '@MEDIA_TYPE_MPEGTS@' ;$$
+CALL klk_app_http_streamer_media_type_add(@media_type, 
+     @return_value);$$ 
+
+SET @media_type = '@MEDIA_TYPE_RTP_MPEGTS@' ;$$
+CALL klk_app_http_streamer_media_type_add(@media_type, 
+     @return_value);$$ 
+
+SET @media_type = '@MEDIA_TYPE_THEORA@' ;$$
+CALL klk_app_http_streamer_media_type_add(@media_type, 
+     @return_value);$$ 	
+
+
+DELIMITER ;
+

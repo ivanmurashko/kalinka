@@ -1,0 +1,84 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- old doctype = "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd" -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE }}" xml:lang="{{ LANGUAGE_CODE }}">
+<head>
+<title>{% block title %}Blank Title{% endblock %}</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="/iface/media/css/{% block stylesheet %}base.css{% endblock %}" />
+
+<script type="text/javascript" src="/media/jsi18n/"></script>
+<script type="text/javascript" src="/media/admin/js/core.js"></script>
+{% block formmedia %}{{ form.media }}{% endblock %}
+
+{% block extrahead %}{% endblock %}
+{% block extrastyle %}{% endblock %}
+
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+</head>
+{% load i18n %}
+
+<body class="{% block bodyclass %}{% endblock %}">
+
+<!-- Container -->
+<div id="container">
+
+    {% if not is_popup %}
+    <!-- Header -->
+    <div id="header">
+        <div id="branding">
+            <h1 id="site-name">{% block branding %}{% endblock %}</h1>
+        </div>
+        {% if user.is_authenticated %}
+            <div id="user-tools">{% trans 'Welcome,' %} <a href="/auth/profile/"><strong>{% firstof user.first_name user.username %}</strong></a>.
+            {% block userlinks %}
+                <a href="{% url django.contrib.auth.views.password_change %}">{% trans 'Change password' %}</a> /
+                <a href="{% url django.contrib.auth.views.logout %}">{% trans 'Log out' %}</a>
+            {% endblock %}
+            </div>
+        {% endif %}
+        <div id="nav-global">{% block nav-global %}{% endblock %}</div>
+    </div>
+    <!-- END Header -->
+    {% block breadcrumbs %}
+        <div class="breadcrumbs"><a href="/iface/">{% trans 'Home' %}</a>
+        {% if title %} &rsaquo; {{ title }}{% endif %}
+        </div>
+    {% endblock %}
+    {% endif %}
+
+    {% if messages %}
+    <ul class="messagelist">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <div id="sidebar">
+        {% block sidebar %}{% endblock %}
+    </div>
+
+    <!-- Content -->
+    <div id="content" class="{% block coltype %}colM{% endblock %}">
+        {% block pretitle %}{% endblock %}
+        {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+        <div id="content-main">
+            {% block content %}
+            {% block object-tools %}{% endblock %}
+            {{ content }}
+            {% endblock %}
+        </div>
+        <br class="clear" />
+    </div>
+    <!-- END Content -->
+    
+    {% if not is_popup %}
+    <div id="footer">
+        {% block footer %}
+        <p>2009 &copy; <a href="mailto:ctapbiu@spbgasu.ru" title="Написать письмо автору">Отдел разработки</a> @ Управление ИТ <a href="http://www.spbgasu.ru">СПбГАСУ</a>
+        <p><a href="/iface/admin/"><small>Административный доступ</small></a>
+        <p><a href="http://djangoproject.com"><img src="/iface/media/img/djangosite100x25.gif"></a></p>
+        {% endblock %}
+    </div>
+    {% endif %}
+
+</div>
+<!-- END Container -->
+</body>
+</html>

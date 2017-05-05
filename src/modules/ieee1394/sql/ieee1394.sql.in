@@ -1,0 +1,66 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- The table keeps records about DV cameras  
+-- Each IEEE1394 device has an unique GUID (64 bits) that can be used for
+-- identification
+-- For each camera we also can retrive an information 
+-- about its vendor and model. The info can be stored at the 
+-- description.
+-- For human readable identification we use name field
+DROP TABLE  IF EXISTS `klk_ieee1394`;$$
+CREATE TABLE`klk_ieee1394` (
+  	`uuid` VARCHAR(40) NOT NULL DEFAULT '',
+	`name` VARCHAR(40) NOT NULL DEFAULT '',
+	`description` VARCHAR(255) NOT NULL DEFAULT '',
+  	PRIMARY KEY (`uuid`),	
+	UNIQUE KEY `name`(`name`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_ieee1394_trigger_update`$$
+CREATE TRIGGER `klk_ieee1394_trigger_update` AFTER UPDATE ON `klk_ieee1394`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_IEEE1394_ID@');$$
+
+
+-- stored procedures
+
+-- New file entry add procedure
+DROP PROCEDURE IF EXISTS `klk_ieee1394_add`;$$
+CREATE PROCEDURE `klk_ieee1394_add` (
+	IN uuid VARCHAR(40),
+	IN name VARCHAR(40), 
+	IN description VARCHAR(255),
+	OUT return_value INT 
+) 
+BEGIN
+	INSERT INTO klk_ieee1394(uuid, name, description) 
+	VALUES(uuid, name, description);
+	SET return_value = 0; 
+END$$
+
+-- Stored procedure for retriving info
+DROP PROCEDURE IF EXISTS `klk_ieee1394_list`;$$
+CREATE PROCEDURE `klk_ieee1394_list` (
+) 
+BEGIN
+	SELECT uuid, name, description FROM klk_ieee1394;
+END$$
+
+
+-- create bus types
+SET @bus_type_id_ieee1394 = '@DEV_TYPE_IEEE1394BUS@';$$
+SET @description = 'IEEE 1394 (FireWire)';$$
+SET @bandwidth = 400000;$$
+CALL klk_bus_type_add(@bus_type_id_ieee1394,@description,@bandwidth, @result);$$
+
+
+DELIMITER ;
+

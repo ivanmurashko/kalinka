@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klkdata>
+  <utest>
+    <id>@APP_LAUNCHER_NAME@</id>
+    <lib_path>@KLK_LIB_PATH@/libklktestlauncher.@klklibextension@</lib_path>
+  </utest>
+</klkdata>

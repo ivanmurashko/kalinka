@@ -1,0 +1,59 @@
+"""@package testdefines.py
+   @file testdefines.py
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2010 Kalinka Team
+
+   This file is part of Kalinka mediaserver.
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2010/12/05 created by ipp (Ivan Murashko)
+"""
+
+"""
+Test network iface name
+"""
+IFACE_NAME='@NET_TEST_DEV_NAME@'
+
+"""
+Test network iface addr
+"""
+IFACE_ADDR='@NET_TEST_DEV_ADDR@'
+
+# 1st route info
+ROUTE1_UUID='@NET_TEST_ROUTE1_UUID@'
+ROUTE1_NAME='@NET_TEST_ROUTE1_NAME@'
+ROUTE1_ADDR='@NET_TEST_ROUTE1_ADDR@'
+ROUTE1_PORT='@NET_TEST_ROUTE1_PORT@'
+# 2d route info
+ROUTE2_UUID='@NET_TEST_ROUTE2_UUID@'
+ROUTE2_NAME='@NET_TEST_ROUTE2_NAME@'
+ROUTE2_ADDR='@NET_TEST_ROUTE2_ADDR@'
+ROUTE2_PORT='@NET_TEST_ROUTE2_PORT@'
+# 3d route info
+ROUTE3_UUID='@NET_TEST_ROUTE3_UUID@'
+ROUTE3_NAME='@NET_TEST_ROUTE3_NAME@'
+ROUTE3_ADDR='@NET_TEST_ROUTE3_ADDR@'
+ROUTE3_PORT='@NET_TEST_ROUTE3_PORT@'
+

@@ -1,0 +1,44 @@
+KLK-FILE-MIB DEFINITIONS::= BEGIN
+-- =================================
+-- .1.3.6.1.4.1.31106.4
+-- .iso.org.dod.internet.private.enterprises.klk.file
+
+-- check MIB file:
+--   snmptranslate -M+. -mKLK-FILE-MIB -Tp -IR file
+
+-- getting a OID:
+--   snmptranslate -M+. -mKLK-FILE-MIB -IR klkNoSignal
+
+-- getting a textual OID:
+--   snmptranslate -On -M+. -mKLK-FILE-MIB -IR klkNoSignal
+
+-- getting a description:
+--   snmptranslate -Td -M+. -mKLK-FILE-MIB -IR klkNoSignal
+
+-- =================================
+-- =================================
+IMPORTS
+  enterprises                                FROM SNMPv2-SMI,
+  klk                                        FROM KLK-MIB
+  OBJECT-TYPE, MODULE-IDENTITY, Integer32    FROM SNMPv2-SMI;
+
+--
+-- A brief description and update information about this mib.
+--
+file MODULE-IDENTITY
+  LAST-UPDATED "200905260000Z"
+  ORGANIZATION "Kalinka Team"
+  CONTACT-INFO "Ivan Murashko
+               "
+  DESCRIPTION  "MIB for Kalinka mediaserver file module
+               "
+  ::= { klk 4 }
+
+klkFileMissing NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "The requested file is missing. The file name is set as
+  a string"
+  ::= { file 1 }
+
+
+END

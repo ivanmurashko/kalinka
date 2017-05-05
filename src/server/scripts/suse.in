@@ -1,0 +1,43 @@
+#! /bin/sh
+#
+# Copyright (c) Kalinka team
+#
+# /etc/init.d/klk
+#
+### BEGIN INIT INFO
+# Provides:          klk
+# Required-Start:    
+# Required-Stop:
+# Default-Start:     B
+# Default-Stop:
+# Description:       Kalinka mediaserver
+### END INIT INFO
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+DAEMON=@KLK_DAEMON_PATH@   # Introduce the server's location here
+NAME=klkd             # Introduce the short server's name here
+PIDFILE=@KLK_LOCK_FILE@
+
+. /etc/rc.status
+
+rc_reset
+
+case "$1" in
+    start)
+	$DAEMON -D
+	rc_status -v -r
+	;;
+    stop)
+	if test -f $PIDFILE; then
+	    PID=`cat $PIDFILE`
+	    kill -TERM $PID
+	fi
+	;;
+    *)
+	echo "Usage: $0 {start|stop}"
+	exit 1
+	;;
+esac
+
+rc_exit

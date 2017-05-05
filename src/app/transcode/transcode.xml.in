@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klkdata>
+  <module>
+    <id>@MODULE_TRANS_ID@</id>
+    <lib_path>@KLK_LIB_PATH@/libklktrans.@klklibextension@</lib_path>
+  </module>
+  <snmp>
+    <id>@TRANSCODE_SNMPLIBNAME@</id>
+    <lib_path>@KLK_LIB_PATH@/lib@TRANSCODE_SNMPLIBNAME@.@klklibextension@</lib_path>    
+  </snmp>
+  <utest>
+    <id>@MODULE_TRANS_NAME@</id>
+    <lib_path>@KLK_LIB_PATH@/libklktesttrans.@klklibextension@</lib_path>
+  </utest>
+</klkdata>

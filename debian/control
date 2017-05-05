@@ -1,0 +1,25 @@
+Source: kalinka-server
+Section: graphics
+Priority: optional
+Maintainer: ipp <ivan.murashko@gmail.com>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: kalinka-snmp
+Architecture: all
+Conflicts: kalinka-server
+Description: Kalinka mediaserver server SNMP files
+ SNMP traps/tables MIB files for Kalinka mediaserver
+
+Package: kalinka-server
+Architecture: any
+Depends: perl, libterm-readkey-perl, libxml-simple-perl, mysql-client (>= 5.0), snmpd, debconf-2.0, ${shlibs:Depends}, ${misc:Depends}
+Conflicts: kalinka-snmp
+Description: Kalinka mediaserver server
+ The mediaserver application streams video/audio signal 
+ from different devices (DV/IEEE1394, analog audio/video, DVB, etc.) 
+ to Internet (UDP multicast/unicast, HTTP). There is also a possibility 
+ to transcode between different multimedia formats. 
+ The system state can be monitored via SNMP (traps and tables) or via a 
+ command line utility. The command line utility can be also used for 
+ system setting modification.

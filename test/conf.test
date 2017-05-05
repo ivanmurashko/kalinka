@@ -1,0 +1,30 @@
+#
+# Kalinka configuration file
+# Unit test data
+#
+
+#
+# Info for connection to main DB
+#
+# Format :
+#          DBUser[:DBPass]@]DBHost[:DBPort]]/DBName/
+Database  klkdb_user:klkdb_pwd@klkdbhost:1234/klkdbname/
+
+#
+# Mediaserver host name
+#
+HostName  confunittest_servername
+
+#
+# SNMP trap receiver
+#
+# Format :
+#        addr[:port]
+SNMPReceiver localhost:45000
+
+#
+# SNMP trap community
+#
+# Format :
+#        string
+SNMPCommunity private

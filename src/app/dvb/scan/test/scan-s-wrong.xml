@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testdata>
+  <tuneinfo>
+    <type>dvbs</type>
+    <adapter>0</adapter>
+    <frontend>0</frontend>
+    <frequency>12000000</frequency>
+    <polarity>h</polarity>
+    <symbol-rate>27500</symbol-rate>
+    <code-rate-hp>3</code-rate-hp>
+    <diseqc-source>0</diseqc-source>
+  </tuneinfo>
+</testdata>

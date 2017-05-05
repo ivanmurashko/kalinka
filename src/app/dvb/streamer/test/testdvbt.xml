@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testdata>
+  <tuneinfo>
+    <type>dvbt</type>
+    <adapter>0</adapter>
+    <frontend>0</frontend>
+    <frequency>578000000</frequency>
+    <bandwidth>0</bandwidth>
+    <code-rate-hp>3</code-rate-hp>
+    <code-rate-lp>0</code-rate-lp>
+    <modulation>3</modulation>
+    <transmode>1</transmode>
+    <guard>0</guard>
+    <hierarchy>0</hierarchy>
+  </tuneinfo>
+  <channel1>
+    <name>Test1</name>
+    <station_id>first</station_id>
+    <channel_no>3401</channel_no>
+    <host>127.0.0.1</host>
+    <port>4001</port>
+  </channel1>
+</testdata>
+

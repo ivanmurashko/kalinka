@@ -1,0 +1,117 @@
+"""@package testvar.py
+   @file testvar.py.in
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2010 Kalinka Team
+
+   This file is part of Kalinka mediaserver.
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2010/12/05 created by ipp (Ivan Murashko)
+"""
+
+"""
+Test input file UUID
+"""
+INPUT_FILE_UUID='@TRANSCODE_TESTINPUTFILE_UUID@'
+
+"""
+Test input file name
+"""
+INPUT_FILE_NAME= '@TRANSCODE_TESTINPUTFILE_NAME@'
+
+"""
+Test input file path
+"""
+INPUT_FILE_PATH='@TRANSCODE_TESTINPUTFILE_PATH@'
+
+"""
+Test input source name
+"""
+INPUT_SOURCE_NAME='@TRANSCODE_TESTINPUTSOURCE_NAME@'
+
+"""
+Test output file UUID
+"""
+OUTPUT_FILE_UUID='@TRANSCODE_TESTOUTPUTFILE_UUID@'
+
+"""
+Test output file name
+"""
+OUTPUT_FILE_NAME= '@TRANSCODE_TESTOUTPUTFILE_NAME@'
+
+"""
+Test output file path
+"""
+OUTPUT_FILE_PATH='@TRANSCODE_TESTOUTPUTFILE_PATH@'
+
+"""
+Test output source name
+"""
+OUTPUT_SOURCE_NAME='@TRANSCODE_TESTOUTPUTSOURCE_NAME@'
+
+"""
+Test net route uuid
+"""
+NETROUTE_UUID='@TRANSCODE_TESTROUTE_UUID@'
+
+"""
+Test network route name
+"""
+NETROUTE_NAME='@TRANSCODE_TESTROUTE_NAME@'
+
+"""
+Test network host 
+"""
+NETROUTE_HOST='@TRANSCODE_TESTROUTE_ADDR@'
+
+"""
+Test network port
+"""
+NETROUTE_PORT=@TRANSCODE_TESTROUTE_PORT@
+
+"""
+Network route source name
+"""
+NETROUTE_SOURCE_NAME='@TRANSCODE_TESTROUTESOURCE_NAME@'
+
+"""
+First task uuid
+"""
+TASK1_UUID='@TRANSCODE_TESTTASK1_UUID@'
+
+"""
+First task name
+"""
+TASK1_NAME='@TRANSCODE_TESTTASK1_NAME@'
+
+"""
+Second task uuid
+"""
+TASK2_UUID='@TRANSCODE_TESTTASK2_UUID@'
+
+"""
+Second task name
+"""
+TASK2_NAME='@TRANSCODE_TESTTASK2_NAME@'

@@ -1,0 +1,162 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create 2 test sources --
+SET @dvbtype = '@DVB_TYPE_DVB_S@';$$
+
+SET @dvb_signal_source_test1 = 
+    '@DVBSTREAMER_TEST_SOURCE1@';$$
+SET @dvb_signal_source_test2 = 
+    '@DVBSTREAMER_TEST_SOURCE2@';$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_test1,
+     @dvbtype, 'klktest_source_1', 
+     'klktest_source_1', @result);$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_test2,
+     @dvbtype, 'klktest_source_2', 
+     'klktest_source_2', @result);$$
+
+-- create antenna and receiver card
+SET @signalsource = '@DVBSTREAMER_TEST_SOURCE1@';$$
+SET @enabled = 1;$$
+SET @adapterno = 0;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'testcard_1';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+SET @signalsource = '@DVBSTREAMER_TEST_SOURCE2@';$$
+SET @enabled = 1;$$
+SET @adapterno = 1;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'testcard_2';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+
+-- create network conncection
+-- SET @trunk = NULL;$$
+-- SET @media_type = '@NETWORK_MEDIA_TYPE_100M@';$$
+-- SET @descricption = 'tv backbone';$$
+-- CALL klk_network_trunk_add(@trunk, @media_type, @description, @result);$$
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+
+-- create network card
+SET @node_name = '@NETDEV_DEFAULT@';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+
+
+-- channels to stream 
+-- all channels are for @DVBSTREAMER_TEST_SOURCE1@
+-- 2 on one frequency and one on another
+
+SET @signalsource = '@DVBSTREAMER_TEST_SOURCE1@';$$
+SET @name='@DVBSTREAMER_TEST_CHANNEL1@';$$
+SET @provider='@DVBSTREAMER_TEST_PROVIDER1@';$$
+SET @frequency = 11304000;$$ 
+SET @channel_1 = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=27500;$$
+SET @channel_no = 400;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_1, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+
+SET @name='@DVBSTREAMER_TEST_CHANNEL2@';$$
+SET @provider='@DVBSTREAMER_TEST_PROVIDER2@';$$
+SET @frequency = 11304000;$$ 
+SET @channel_2 = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=27500;$$
+SET @channel_no = 410;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_2, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+SET @name='@DVBSTREAMER_TEST_CHANNEL3@';$$
+SET @provider='@DVBSTREAMER_TEST_PROVIDER3@';$$
+SET @frequency = 12304000;$$ -- another frequency
+SET @channel_3 = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=37500;$$
+SET @channel_no = 410;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_3, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+
+-- assign ip address to network card
+
+SET @address = NULL;$$
+SET @ipaddress = '127.0.0.1';$$
+SET @ipmask = '255.255.255.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+-- setup routes 
+
+SET @proto = '@NETWORK_PROTO_UDP@';$$
+
+SET @route1 = NULL;$$
+SET @name1 = '@DVBSTREAMER_TEST_ROUTE1@';$$
+SET @host1 = '@DVBSTREAMER_TEST_ROUTEADDR1@';$$
+SET @port1 = @DVBSTREAMER_TEST_ROUTEPORT1@;$$
+CALL klk_network_route_add(@route1, @name1, 
+     @address, @host1, @port1, @proto, @result);$$
+
+
+SET @route2 = NULL;$$
+SET @name2 = '@DVBSTREAMER_TEST_ROUTE2@';$$
+SET @host2 = '@DVBSTREAMER_TEST_ROUTEADDR2@';$$
+SET @port2 = @DVBSTREAMER_TEST_ROUTEPORT2@;$$
+CALL klk_network_route_add(@route2, @name2, 
+     @address, @host2, @port2, @proto, @result);$$
+
+
+SET @route3 = NULL;$$
+SET @name3 = '@DVBSTREAMER_TEST_ROUTE3@';$$
+SET @host3 = '224.0.1.3';$$
+SET @port3 = 4001;$$
+CALL klk_network_route_add(@route3, @name3, 
+     @address, @host3, @port3, @proto, @result);$$
+
+
+/* APPLICATION SETUP */
+
+-- create dvb demo application
+SET @module = '@MODULE_DVBSTREAMER_ID@' ;$$
+SET @app_name = 'dvbsstream';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'dvb-s streaming server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+
+DELIMITER ;

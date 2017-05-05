@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klkdata>
+  <module>
+    <id>@MODULE_FILE_ID@</id>
+    <lib_path>@KLK_LIB_PATH@/libklkfile.@klklibextension@</lib_path>
+  </module>
+  <utest>
+    <id>@MODULE_FILE_NAME@</id>
+    <lib_path>@KLK_LIB_PATH@/libklktestfile.@klklibextension@</lib_path>
+  </utest>
+</klkdata>

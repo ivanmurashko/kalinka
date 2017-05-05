@@ -1,0 +1,36 @@
+dnl
+dnl Messages defenitions for Kalinka mediaserver
+dnl
+dnl Do several:
+dnl AC_SUBST(KLK_MSG_KEY_XXX)
+
+AC_DEFUN([AC_KLK_MSG],
+[
+    KLK_MSG_KEY_STATUS="status"
+    AC_SUBST(KLK_MSG_KEY_STATUS)
+
+    KLK_MSG_KEY_OK="ok"
+    AC_SUBST(KLK_MSG_KEY_OK)
+
+    KLK_MSG_KEY_ERROR="error"
+    AC_SUBST(KLK_MSG_KEY_ERROR)
+
+    KLK_MSG_KEY_CLIRESULT="cliresult"
+    AC_SUBST(KLK_MSG_KEY_CLIRESULT)
+
+    KLK_MSG_KEY_RESULT="result"
+    AC_SUBST(KLK_MSG_KEY_RESULT)
+
+	dnl CLI related command ids
+	KLK_MSG_KEY_CLI_TYPE="clitype"
+    AC_SUBST(KLK_MSG_KEY_CLI_TYPE)
+
+	KLK_MSG_KEY_CLI_PARAMS="cliparams"
+    AC_SUBST(KLK_MSG_KEY_CLI_PARAMS)
+
+	KLK_MSG_KEY_CLI_TYPE_PROCESS="clitype_process"
+    AC_SUBST(KLK_MSG_KEY_CLI_TYPE_PROCESS)
+
+	KLK_MSG_KEY_CLI_TYPE_COMPLETE="clitype_complete"
+    AC_SUBST(KLK_MSG_KEY_CLI_TYPE_COMPLETE)	
+])

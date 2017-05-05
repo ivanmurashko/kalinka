@@ -1,0 +1,290 @@
+/**
+   @file dvbdev.h
+   @brief This file is part of Kalinka mediaserver.
+   @author ipp <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2008/09/20 created by ipp (Ivan Murashko)
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef _DVBDEV_H
+#define _DVBDEV_H
+
+#include "ifactory.h"
+#include "common.h"
+#include "basedev.h"
+
+namespace klk
+{
+    namespace dev
+    {
+        /** @defgroup grDVBResources DVB resources types
+
+            DVB tresource hardware info
+
+            @ingroup grResources
+            @{
+        */
+
+        /**
+           DVB type
+        */
+        const std::string DVB_ALL = "@RESOURCE_TYPE_DVB@";
+
+        /**
+           DVB_T type
+        */
+        const std::string DVB_T = "@DVB_TYPE_DVB_T@";
+
+        /**
+           DVB_T2 type
+        */
+        const std::string DVB_T2 = "@DVB_TYPE_DVB_T2@";
+
+        /**
+           DVB_S type
+        */
+        const std::string DVB_S = "@DVB_TYPE_DVB_S@";
+
+        /**
+           DVB_S2 type
+        */
+        const std::string DVB_S2 = "@DVB_TYPE_DVB_S2@";
+
+        /**
+           DVB_C type
+        */
+        const std::string DVB_C = "@DVB_TYPE_DVB_C@";
+
+        /**
+           Source UUID key for the dev
+        */
+        const std::string SOURCE = "source";
+
+        /**
+           Adapter number key for tune info
+        */
+        const std::string ADAPTER = "adapter";
+
+        /**
+           Frontend number key for tune info
+        */
+        const std::string FRONTEND = "frontend";
+
+        /**
+           Frequency key for tune info
+        */
+        const std::string FREQUENCY = "frequency";
+
+        /**
+           Polarity key for tune info (dvb-s specific)
+        */
+        const std::string POLARITY = "polarity";
+
+        /**
+           DISEqC source key for tune info (dvb-s specific)
+           Values:
+           - 0 - don't use diseqc
+           - 1 - use the first source
+           - 2 - use the second source
+           - 3 use 3d source
+           - 4 use 4th source
+           - >=5 - invalid value
+        */
+        const std::string DISEQC_SRC = "diseqc-source";
+
+
+        /**
+           Symbol-rate key for tune info
+        */
+        const std::string SYMBOL_RATE = "symbol-rate";
+
+        /**
+           Code rate hp key for tune info
+        */
+        const std::string CODE_RATE_HP = "code-rate-hp";
+
+        /**
+           Code rate lp key for tune info (dvb-t specific)
+        */
+        const std::string CODE_RATE_LP = "code-rate-lp";
+
+        /**
+           Modulation key for tune info (dvb-t specific)
+        */
+        const std::string MODULATION = "modulation";
+
+        /**
+           Transmode key for tune info (dvb-t specific)
+        */
+        const std::string TRANSMODE = "transmode";
+
+        /**
+           Hierarchy key for tune info (dvb-t specific)
+        */
+        const std::string HIERARCHY = "hierarchy";
+
+        /**
+           Guard key for tune info (dvb-t specific)
+        */
+        const std::string GUARD = "guard";
+
+        /**
+           Signal streight
+
+           A DVB specific field
+        */
+        const std::string SIGNAL = "dvb_signal_streight";
+
+        /**
+           Has lock value
+
+           A DVB specific field
+        */
+        const std::string HASLOCK = "dvb_has_lock";
+
+        /**
+           DVB-T bandwidth
+
+           A DVB specific field
+        */
+        const std::string DVBBANDWIDTH = "dvb_bandwidth";
+
+        /**
+           The dev lost lock
+
+           A DVB specific field
+        */
+        const std::string LOSTLOCK = "dvb_lost_lock";
+
+        /**
+           Signal/noise ratio
+
+           A DVB specific field
+        */
+        const std::string SNR = "dvb_snr";
+
+        /**
+           BER (bit error rate)
+
+           A DVB specific field
+        */
+        const std::string BER = "dvb_ber";
+
+        /**
+           UNC (uncorrect block count)
+
+           A DVB specific field
+        */
+        const std::string UNC = "dvb_unc";
+
+        /**
+           DVB activity field
+
+           A DVB specific field
+        */
+        const std::string DVBACTIVITY = "dvb_activity";
+
+        /**
+           DVB activity field streaming
+
+           A DVB specific field
+        */
+        const std::string STREAMING = "dvb_streaming";
+
+        /**
+           DVB activity field scaning
+
+           A DVB specific field
+        */
+        const std::string SCANING = "dvb_scaning";
+
+        /**
+           @brief DVB device
+
+           DVB device
+
+           @ingroup grResources
+        */
+        class DVB : public Base
+        {
+        public:
+            /**
+               Constructor
+
+               @param[in] factory - the factory
+               @param[in] type - the dev's type
+            */
+            DVB(IFactory* factory, const std::string& type);
+
+            /**
+               Destructor
+            */
+            virtual ~DVB(){}
+
+            /**
+               @copydoc IDev::update()
+            */
+            virtual void update();
+
+            /**
+               @copydoc IDev::updateDB()
+            */
+            virtual void updateDB();
+
+            /**
+               @copydoc IDev::equal_to()
+            */
+            virtual bool equal_to(const IDevPtr& dev) const;
+        private:
+            /**
+               Retrives PCI bus uuid
+
+               @note FIXME!!! remove it
+            */
+            const std::string getBusUUID();
+        private:
+            /**
+               Copy constructor
+               @param[in] value - the copy param
+            */
+            DVB(const DVB& value);
+
+            /**
+               Assigment operator
+               @param[in] value - the copy param
+            */
+            DVB& operator=(const DVB& value);
+        };
+        /** @} */
+    }
+}
+
+#endif //_DVBDEV_H

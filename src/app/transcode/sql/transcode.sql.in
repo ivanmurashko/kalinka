@@ -1,0 +1,475 @@
+DELIMITER $$ 
+
+--  tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- application tables
+
+-- the table keeps available sources types
+DROP TABLE  IF EXISTS `klk_app_transcode_source_type`;$$ 
+CREATE TABLE `klk_app_transcode_source_type` (
+       `type_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+       `type_name` VARCHAR(40) NOT NULL DEFAULT '',       
+       PRIMARY KEY (`type_uuid`),
+       UNIQUE KEY `type_name`(`type_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- source table keeps all known sources for transcoding
+-- source consists of type (network, file, device etc.) and UUID
+-- the uuid refers to an external table with additional info about 
+-- the source
+-- source_uuid is equal to external source uuid (file, network route etc.)
+DROP TABLE  IF EXISTS `klk_app_transcode_source`;$$ 
+CREATE TABLE `klk_app_transcode_source` (
+       `source_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+       `source_name` VARCHAR(255) NOT NULL DEFAULT '',       
+       `media_type` VARCHAR(40) NOT NULL DEFAULT '',     
+       `source_type` VARCHAR(40) NOT NULL DEFAULT '',  
+       PRIMARY KEY (`source_uuid`),
+       UNIQUE KEY `source_name`(`source_name`),
+       CONSTRAINT `fk_klk_app_transcode_source_source_type` FOREIGN KEY (`source_type`) REFERENCES `klk_app_transcode_source_type` (`type_uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_transcode_source_media_type` FOREIGN KEY (`media_type`) REFERENCES `klk_media_types` (`uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- The table keeps video sizes for transcode operations
+DROP TABLE  IF EXISTS `klk_app_transcode_video_size`;$$ 
+CREATE TABLE `klk_app_transcode_video_size` (
+	   `size_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+       `size_name` VARCHAR(255) NOT NULL DEFAULT '',       
+       `width` INT DEFAULT NULL,       
+       `height` INT DEFAULT NULL,       
+       PRIMARY KEY (`size_uuid`),
+       UNIQUE KEY `size_name`(`size_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- The table keeps video qualities info for transcode operations
+DROP TABLE  IF EXISTS `klk_app_transcode_video_quality`;$$ 
+CREATE TABLE `klk_app_transcode_video_quality` (
+	   `quality_uuid` VARCHAR(40) NOT NULL DEFAULT '',
+       `quality_name` VARCHAR(255) NOT NULL DEFAULT '',       
+       PRIMARY KEY (`quality_uuid`),
+       UNIQUE KEY `quality_name`(`quality_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- task table keeps info about tasks fortranscoding
+-- task consists of two elements: input source and output source
+-- A task can be identified at an external application by its name
+-- The input source should be unique but an input source can be transcode into
+-- more than one output source
+DROP TABLE  IF EXISTS `klk_app_transcode_task`;$$ 
+CREATE TABLE `klk_app_transcode_task` (
+       `task` VARCHAR(40) NOT NULL DEFAULT '',
+       `task_name` VARCHAR(128) NOT NULL DEFAULT '',       
+       `input_source` VARCHAR(40) NOT NULL DEFAULT '',
+       `output_source` VARCHAR(40) NOT NULL DEFAULT '',
+	   `size_uuid`  VARCHAR(40) NOT NULL DEFAULT '',
+	   `quality_uuid`  VARCHAR(40) NOT NULL DEFAULT '',
+       `schedule_start` VARCHAR(128) NOT NULL DEFAULT '@MODULE_TRANS_SCHEDULE_REBOOT@',
+       `schedule_duration` INT NOT NULL DEFAULT '0',
+       PRIMARY KEY (`task`),
+       UNIQUE KEY `task_name`(`task_name`),
+       UNIQUE KEY `output_source`(`output_source`),
+       CONSTRAINT `fk_klk_app_transcode_input_source` FOREIGN KEY (`input_source`) REFERENCES `klk_app_transcode_source` (`source_uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_transcode_output_source` FOREIGN KEY (`output_source`) REFERENCES `klk_app_transcode_source` (`source_uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_transcode_size` FOREIGN KEY (`size_uuid`) REFERENCES `klk_app_transcode_video_size` (`size_uuid`) ON DELETE CASCADE ON UPDATE CASCADE,
+       CONSTRAINT `fk_klk_app_transcode_quality` FOREIGN KEY (`quality_uuid`) REFERENCES `klk_app_transcode_video_quality` (`quality_uuid`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+-- Triggers for log filling
+DROP TRIGGER IF EXISTS `klk_app_transcode_trigger_insert`$$
+CREATE TRIGGER `klk_app_transcode_trigger_insert` AFTER INSERT ON `klk_app_transcode_task`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_TRANS_ID@');
+
+-- DROP TRIGGER IF EXISTS `klk_app_transcode_trigger_update`$$
+-- CREATE TRIGGER `klk_app_transcode_trigger_update` AFTER UPDATE ON `klk_app_transcode`
+-- FOR EACH ROW
+-- BEGIN
+--     IF ((NEW.lock_used_host IS NULL) OR (NEW.lock_timestamp < NOW())) THEN
+--         CALL klk_log_add('@MODULE_DVBSTREAMER_ID@');
+--     END IF;
+-- END;
+
+DROP TRIGGER IF EXISTS `klk_app_transcode_trigger_delete`$$
+CREATE TRIGGER `klk_app_transcode_trigger_delete` AFTER DELETE ON `klk_app_transcode_task`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_TRANS_ID@');
+
+-- Triggers for data constrain
+
+-- network route source constrain
+DROP TRIGGER IF EXISTS `klk_app_transcode_network_route_delete`$$
+CREATE TRIGGER `klk_app_transcode_network_route_delete` BEFORE DELETE ON `klk_network_routes`
+FOR EACH ROW
+    DELETE FROM klk_app_transcode_source WHERE OLD.route = klk_app_transcode_source.source_uuid;$$
+
+-- file source constrain
+DROP TRIGGER IF EXISTS `klk_app_transcode_file_delete`$$
+CREATE TRIGGER `klk_app_transcode_file_delete` BEFORE DELETE ON `klk_file`
+FOR EACH ROW
+    DELETE FROM klk_app_transcode_source WHERE OLD.file = klk_app_transcode_source.source_uuid;$$
+
+-- DV source constrain
+DROP TRIGGER IF EXISTS `klk_app_transcode_ieee1394_delete`$$
+CREATE TRIGGER `klk_app_transcode_ieee1394_delete` BEFORE DELETE ON `klk_ieee1394`
+FOR EACH ROW
+    DELETE FROM klk_app_transcode_source WHERE OLD.uuid = klk_app_transcode_source.source_uuid;$$
+
+
+-- Stored procedures
+
+-- Adds a source
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_add`;$$
+CREATE PROCEDURE `klk_app_transcode_source_add` (
+	IN source_uuid VARCHAR(40),
+	IN source_name VARCHAR(255),
+	IN media_type VARCHAR(40),
+	IN source_type VARCHAR(40),
+	OUT return_value INT 
+) 
+BEGIN
+	IF source_uuid IS null THEN
+		SET source_uuid = UUID();
+	END IF;
+	INSERT INTO klk_app_transcode_source(source_uuid, source_name,  media_type, source_type) 
+	VALUES(source_uuid, source_name, media_type, source_type);
+	SET return_value = 0; 
+END;$$
+
+-- Adds a task
+DROP PROCEDURE IF EXISTS `klk_app_transcode_task_add`;$$
+CREATE PROCEDURE `klk_app_transcode_task_add` (
+	INOUT task_uuid VARCHAR(40),
+	IN task_name VARCHAR(40),
+	IN input_source VARCHAR(40),
+	IN output_source VARCHAR(40),
+	IN vsize VARCHAR(40),
+	IN vquality VARCHAR(40),
+	IN schedule_start VARCHAR(128),
+	IN schedule_duration INT,
+	OUT return_value INT 
+) 
+BEGIN
+	IF task_uuid IS null THEN
+		SET task_uuid = UUID();
+	END IF;
+	INSERT INTO klk_app_transcode_task(task, task_name,
+		input_source, output_source, size_uuid, quality_uuid, 
+		schedule_start, schedule_duration) 
+	VALUES(task_uuid, task_name,
+	        input_source, output_source, vsize, vquality, 
+			schedule_start, schedule_duration);
+	SET return_value = 0; 
+END;$$
+
+-- Retrives all tasks info for a specified application
+DROP PROCEDURE IF EXISTS `klk_app_transcode_get`;$$
+CREATE PROCEDURE `klk_app_transcode_get` (
+) 
+BEGIN
+	SELECT klk_app_transcode_task.task AS task_uuid,
+	       klk_app_transcode_task.task_name AS task_name,
+	       input_source.source_uuid AS input_uuid,
+	       input_source.source_name AS input_name,
+	       input_source.source_type AS input_source_type,
+	       input_source.media_type AS input_media_type,
+	       output_source.source_uuid AS output_uuid,
+	       output_source.source_name AS output_name,
+	       output_source.source_type AS output_source_type,
+	       output_source.media_type AS output_media_type,
+		   klk_app_transcode_video_size.size_name AS vsize_name,
+		   klk_app_transcode_video_size.size_uuid AS vsize_uuid,
+		   klk_app_transcode_video_quality.quality_name AS vquality_name,
+		   klk_app_transcode_video_quality.quality_uuid AS vquality_uuid,
+	       klk_app_transcode_task.schedule_start AS schedule_start,
+	       klk_app_transcode_task.schedule_duration AS schedule_duration
+	FROM klk_app_transcode_task,
+	 klk_app_transcode_video_size,	klk_app_transcode_video_quality,
+	(SELECT klk_app_transcode_source.* FROM 
+		klk_app_transcode_source) AS input_source,
+	(SELECT klk_app_transcode_source.* FROM 
+		klk_app_transcode_source) AS output_source
+	 WHERE 
+	       input_source.source_uuid = klk_app_transcode_task.input_source 
+	       AND 
+	       output_source.source_uuid = klk_app_transcode_task.output_source
+		   AND
+		   klk_app_transcode_video_size.size_uuid = klk_app_transcode_task.size_uuid
+		   AND
+		   klk_app_transcode_video_quality.quality_uuid = 
+		   												klk_app_transcode_task.quality_uuid;
+END;$$
+
+-- Adds a source for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_add_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_source_add_cli` (
+	IN source_type_name VARCHAR(255),
+	IN source_name VARCHAR(255),
+	IN media_type_name VARCHAR(255),
+	OUT assigned_source_name VARCHAR(255) 
+) 
+BEGIN
+		DECLARE uuid VARCHAR(40);
+		DECLARE type_uuid VARCHAR(40);
+		DECLARE media_type VARCHAR(40);
+
+		DECLARE EXIT HANDLER FOR NOT FOUND SET assigned_source_name = NULL;
+
+		-- Detrimine media type
+		SELECT klk_media_types.uuid INTO media_type 
+  		      FROM klk_media_types 
+		 WHERE klk_media_types.name = media_type_name;
+
+
+		-- Determine source uuid and type uuid 
+		IF source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_FILE_NAME@'
+		THEN
+				SELECT klk_file.file INTO uuid FROM klk_file WHERE
+					   klk_file.name = source_name;
+			    SET type_uuid = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_NET_NAME@'
+		THEN
+				SELECT klk_network_routes.route INTO uuid FROM klk_network_routes WHERE
+					   klk_network_routes.name = source_name;
+			    SET type_uuid = '@MODULE_TRANS_SOURCE_TYPE_NET_UUID@';
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_DV_NAME@'
+		THEN
+				SELECT klk_ieee1394.uuid INTO uuid FROM klk_ieee1394 WHERE
+					   klk_ieee1394.name = source_name;
+			    SET type_uuid = '@MODULE_TRANS_SOURCE_TYPE_DV_UUID@';
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_NAME@'
+		THEN
+				SELECT klk_httpsrc.httpsrc INTO uuid FROM klk_httpsrc WHERE
+					   klk_httpsrc.title = source_name;
+			    SET type_uuid = '@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_UUID@';
+		END IF;
+
+		-- set assigned value for the source name
+		SET assigned_source_name = CONCAT(source_type_name, '/' , source_name, '/', media_type_name); 
+
+		-- insert record into the DB
+		INSERT INTO klk_app_transcode_source(
+	       	    source_uuid, source_name, media_type, source_type) 
+	    VALUES  (uuid, assigned_source_name, media_type, type_uuid);
+END;$$
+
+-- Deletes a source for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_del_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_source_del_cli` (
+	IN source_name VARCHAR(255),
+	OUT return_value INT 
+) 
+BEGIN
+    DECLARE uuid VARCHAR(40);
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	-- We need in select to detect that we requested to remove an invalid
+	-- source	
+	SELECT klk_app_transcode_source.source_uuid INTO uuid 
+		   FROM klk_app_transcode_source 
+		   WHERE klk_app_transcode_source.source_name = source_name;
+	DELETE FROM klk_app_transcode_source WHERE klk_app_transcode_source.source_uuid = uuid;
+
+	SET return_value = 0;
+END;$$
+
+-- Adds a task for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_task_add_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_task_add_cli` (
+	IN task_name VARCHAR(255),
+	IN input_name VARCHAR(255),
+	IN output_name VARCHAR(255),
+	IN size_name VARCHAR(255),
+	IN quality_name VARCHAR(255),
+	IN schedule_start VARCHAR(128),
+    IN schedule_duration INT,
+	OUT return_value INT 
+) 
+BEGIN
+  DECLARE task_uuid VARCHAR(40);
+  DECLARE input_source VARCHAR(40);
+  DECLARE output_source VARCHAR(40);
+  DECLARE vsize_uuid VARCHAR(40);
+  DECLARE vquality_uuid VARCHAR(40);
+  DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+  SELECT klk_app_transcode_source.source_uuid INTO input_source 
+  		 FROM klk_app_transcode_source 
+		 WHERE klk_app_transcode_source.source_name = input_name;
+  SELECT klk_app_transcode_source.source_uuid INTO output_source 
+  		 FROM klk_app_transcode_source 
+		 WHERE klk_app_transcode_source.source_name = output_name;
+  SELECT klk_app_transcode_video_size.size_uuid INTO vsize_uuid 
+  		 FROM klk_app_transcode_video_size
+		 WHERE klk_app_transcode_video_size.size_name = size_name;
+  SELECT klk_app_transcode_video_quality.quality_uuid INTO vquality_uuid 
+  		 FROM klk_app_transcode_video_quality
+		 WHERE klk_app_transcode_video_quality.quality_name = quality_name;
+
+  CALL klk_app_transcode_task_add(task_uuid, task_name, input_source, output_source, 
+  	     vsize_uuid, vquality_uuid,
+		 schedule_start, schedule_duration, return_value);
+
+END;$$
+
+-- Deletes a task for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_task_del_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_task_del_cli` (
+	IN task_name VARCHAR(255),
+	OUT return_value INT 
+) 
+BEGIN
+    DECLARE uuid VARCHAR(40);
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	-- We need in select to detect that we requested to remove an invalid
+	-- task
+	SELECT klk_app_transcode_task.task INTO uuid 
+		   FROM klk_app_transcode_task 
+		   WHERE klk_app_transcode_task.task_name = task_name;
+	DELETE FROM klk_app_transcode_task 
+		   WHERE klk_app_transcode_task.task = uuid;
+
+	SET return_value = 0;
+END;$$
+
+-- Retrives a list with possible source types
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_type_get_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_source_type_get_cli` (
+) 
+BEGIN
+    SELECT klk_app_transcode_source_type.type_name AS name FROM
+	klk_app_transcode_source_type;
+END;$$
+
+-- Retrives a list with possible source names for the specified
+-- source type. It retrives a list of source names that are not currently assigned
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_name_missing_get_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_source_name_missing_get_cli` (
+	IN source_type_name VARCHAR(255)
+) 
+BEGIN
+		IF source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_FILE_NAME@'
+		THEN
+				SELECT klk_file.name AS name FROM klk_file WHERE
+					   klk_file.file NOT IN 
+					   				  (SELECT klk_app_transcode_source.source_uuid 
+									  		 FROM klk_app_transcode_source);
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_NET_NAME@'
+		THEN
+				SELECT klk_network_routes.name AS name FROM klk_network_routes WHERE
+					   klk_network_routes.route NOT IN 
+					   				  (SELECT klk_app_transcode_source.source_uuid 
+									  		 FROM klk_app_transcode_source);
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_DV_NAME@'
+		THEN
+				SELECT klk_ieee1394.name AS name FROM klk_ieee1394 WHERE
+					   klk_ieee1394.uuid NOT IN 
+					   				  (SELECT klk_app_transcode_source.source_uuid 
+									  		 FROM klk_app_transcode_source);
+		ELSEIF  source_type_name =  '@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_NAME@'
+		THEN
+				SELECT klk_httpsrc.title AS name FROM klk_httpsrc WHERE
+					   klk_httpsrc.httpsrc NOT IN 
+					   				  (SELECT klk_app_transcode_source.source_uuid 
+									  		 FROM klk_app_transcode_source);
+		END IF;
+END;$$
+
+-- Retrives a list of assigned sources for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_source_show_cli`;$$
+CREATE PROCEDURE `klk_app_transcode_source_show_cli` (
+) 
+BEGIN
+		SELECT klk_app_transcode_source.source_name AS source_name,
+		klk_app_transcode_source_type.type_name AS type_name,
+		klk_media_types.name AS media_type_name,
+        klk_app_transcode_source.source_uuid AS source_uuid,
+        klk_media_types.uuid AS media_type_uuid
+		FROM
+		klk_app_transcode_source, klk_app_transcode_source_type, klk_media_types
+		WHERE klk_app_transcode_source_type.type_uuid = 
+		klk_app_transcode_source.source_type 
+		AND klk_app_transcode_source.media_type = klk_media_types.uuid;
+END;$$
+
+-- Retrives a list of video sizes names for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_video_size_list`;$$
+CREATE PROCEDURE `klk_app_transcode_video_size_list` (
+) 
+BEGIN
+		SELECT klk_app_transcode_video_size.size_name AS name
+		FROM klk_app_transcode_video_size;
+END;$$
+
+-- Retrives a list of video qualitys names for CLI
+DROP PROCEDURE IF EXISTS `klk_app_transcode_video_quality_list`;$$
+CREATE PROCEDURE `klk_app_transcode_video_quality_list` (
+) 
+BEGIN
+		SELECT klk_app_transcode_video_quality.quality_name AS name
+		FROM klk_app_transcode_video_quality;
+END;$$
+
+
+-- Default values
+
+-- Default source types
+SET @type_uuid = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';$$
+SET @type_name = '@MODULE_TRANS_SOURCE_TYPE_FILE_NAME@';$$
+INSERT INTO klk_app_transcode_source_type(type_uuid, type_name) 
+	VALUES(@type_uuid, @type_name);$$
+SET @type_uuid = '@MODULE_TRANS_SOURCE_TYPE_DV_UUID@';$$
+SET @type_name = '@MODULE_TRANS_SOURCE_TYPE_DV_NAME@';$$
+INSERT INTO klk_app_transcode_source_type(type_uuid, type_name) 
+	VALUES(@type_uuid, @type_name);$$
+SET @type_uuid = '@MODULE_TRANS_SOURCE_TYPE_NET_UUID@';$$
+SET @type_name = '@MODULE_TRANS_SOURCE_TYPE_NET_NAME@';$$
+INSERT INTO klk_app_transcode_source_type(type_uuid, type_name) 
+	VALUES(@type_uuid, @type_name);$$
+SET @type_uuid = '@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_UUID@';$$
+SET @type_name = '@MODULE_TRANS_SOURCE_TYPE_HTTPSRC_NAME@';$$
+INSERT INTO klk_app_transcode_source_type(type_uuid, type_name) 
+	VALUES(@type_uuid, @type_name);$$
+-- Default video sizes
+SET @size_uuid = '@MODULE_TRANS_VSIZE_DEFAULT_UUID@';$$
+SET @size_name = '@MODULE_TRANS_VSIZE_DEFAULT_NAME@';$$
+INSERT INTO klk_app_transcode_video_size(size_uuid, size_name) 
+	VALUES(@size_uuid, @size_name);$$
+SET @size_uuid = '@MODULE_TRANS_VSIZE_320_240_UUID@';$$
+SET @size_name = '@MODULE_TRANS_VSIZE_320_240_NAME@';$$
+SET @width=320;$$
+SET @height=240;$$
+INSERT INTO klk_app_transcode_video_size(size_uuid, size_name,width,height) 
+	VALUES(@size_uuid, @size_name, @width,@height);$$
+SET @size_uuid = '@MODULE_TRANS_VSIZE_640_480_UUID@';$$
+SET @size_name = '@MODULE_TRANS_VSIZE_640_480_NAME@';$$
+SET @width=640;$$
+SET @height=480;$$
+INSERT INTO klk_app_transcode_video_size(size_uuid, size_name,width,height) 
+	VALUES(@size_uuid, @size_name, @width,@height);$$
+SET @size_uuid = '@MODULE_TRANS_VSIZE_720_576_UUID@';$$
+SET @size_name = '@MODULE_TRANS_VSIZE_720_576_NAME@';$$
+SET @width=720;$$
+SET @height=576;$$
+INSERT INTO klk_app_transcode_video_size(size_uuid, size_name,width,height) 
+	VALUES(@size_uuid, @size_name, @width,@height);$$
+-- Default video quality
+SET @quality_uuid = '@MODULE_TRANS_VQUALITY_DEFAULT_UUID@';$$
+SET @quality_name = '@MODULE_TRANS_VQUALITY_DEFAULT_NAME@';$$
+INSERT INTO klk_app_transcode_video_quality(quality_uuid, quality_name) 
+	VALUES(@quality_uuid, @quality_name);$$
+SET @quality_uuid = '@MODULE_TRANS_VQUALITY_LOW_UUID@';$$
+SET @quality_name = '@MODULE_TRANS_VQUALITY_LOW_NAME@';$$
+INSERT INTO klk_app_transcode_video_quality(quality_uuid, quality_name) 
+	VALUES(@quality_uuid, @quality_name);$$
+SET @quality_uuid = '@MODULE_TRANS_VQUALITY_MEDIUM_UUID@';$$
+SET @quality_name = '@MODULE_TRANS_VQUALITY_MEDIUM_NAME@';$$
+INSERT INTO klk_app_transcode_video_quality(quality_uuid, quality_name) 
+	VALUES(@quality_uuid, @quality_name);$$
+SET @quality_uuid = '@MODULE_TRANS_VQUALITY_HIGH_UUID@';$$
+SET @quality_name = '@MODULE_TRANS_VQUALITY_HIGH_NAME@';$$
+INSERT INTO klk_app_transcode_video_quality(quality_uuid, quality_name) 
+	VALUES(@quality_uuid, @quality_name);$$
+
+DELIMITER ;
+

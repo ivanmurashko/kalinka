@@ -1,0 +1,64 @@
+KLK-MIB DEFINITIONS::= BEGIN
+-- =================================
+-- .1.3.6.1.4.1.31106
+-- .iso.org.dod.internet.private.enterprises.klk
+
+-- check MIB file:
+--   snmptranslate -M+. -mKLK-MIB -Tp -IR klk
+
+-- getting a OID:
+--   snmptranslate -M+. -mKLK-MIB -IR klkDBFailed
+
+-- getting a textual OID:
+--   snmptranslate -On -M+. -mKLK-MIB -IR klkDBFailed
+
+-- getting a description:
+--   snmptranslate -Td -M+. -mKLK-MIB -IR klkDBFailed
+
+-- =================================
+-- =================================
+IMPORTS
+  enterprises                     FROM SNMPv2-SMI,
+  MODULE-IDENTITY                 FROM SNMPv2-SMI
+  MODULE-COMPLIANCE, OBJECT-GROUP FROM SNMPv2-CONF;
+
+--
+-- A brief description and update information about this mib.
+--
+klk MODULE-IDENTITY
+  LAST-UPDATED "200905260000Z"
+  ORGANIZATION "Kalinka Team"
+  CONTACT-INFO "Ivan Murashko
+               "
+  DESCRIPTION  "MIB for Kalinka mediaserver SNMP
+               "
+  ::= { enterprises 31106 }
+
+common OBJECT IDENTIFIER ::= { klk 1 }
+
+--------------COMMON--------------
+
+klkDBFailed NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "An operation with DB was failed. The value is a string
+  and it keeps the error message"
+  ::= { common 1 }
+klkModuleLoadFailed NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "The mediaserver could not load a module. The module
+  UUID will be the value of the trap"
+  ::= { common 2 }
+klkModuleDontResponde NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "A module does not responde. The module
+  UUID will be the value of the trap."
+  ::= { common 3 }
+klkGSTPluginMissing NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "The necessary GStreamer plugin missing. The plugin name
+  is set as a string"
+  ::= { common 4 }
+
+
+
+END

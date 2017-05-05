@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klkdata>
+  <module>
+    <id>@MODULE_DVB_ID@</id>
+    <lib_path>@KLK_LIB_PATH@/libklkdvb.@klklibextension@</lib_path>
+  </module>
+  <snmp>
+    <id>@DVB_SNMPLIBNAME@</id>
+    <lib_path>@KLK_LIB_PATH@/lib@DVB_SNMPLIBNAME@.@klklibextension@</lib_path>    
+  </snmp>
+  <utest>
+    <id>@MODULE_DVB_NAME@</id>
+    <lib_path>@KLK_LIB_PATH@/libklktestdvb.@klklibextension@</lib_path>
+  </utest>
+</klkdata>

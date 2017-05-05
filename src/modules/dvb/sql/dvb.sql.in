@@ -1,0 +1,1471 @@
+DELIMITER $$ 
+
+-- dvb tables  
+
+SET FOREIGN_KEY_CHECKS=0;$$
+
+-- DVB types (DVB-T/S/C)
+DROP TABLE  IF EXISTS `klk_dvb_types`;$$
+CREATE TABLE`klk_dvb_types` (
+  	`dvb_type` VARCHAR(40) NOT NULL DEFAULT '',
+	`name` VARCHAR(40) NOT NULL DEFAULT '',
+  	`description` VARCHAR(255) NOT NULL DEFAULT '',
+  	PRIMARY KEY (`dvb_type`),	
+	UNIQUE KEY `dvb_type`(`dvb_type`),
+	UNIQUE KEY `name`(`name`)
+)
+ENGINE =InnoDB CHARSET=utf8;$$
+
+-- Source types table
+-- Each source is related to a specific DVB type (DVB-T/S/C)
+DROP TABLE  IF EXISTS `klk_dvb_signal_sources`;$$ 
+CREATE TABLE`klk_dvb_signal_sources` (
+	`signal_source` VARCHAR(40) NOT NULL DEFAULT '' ,
+  	`dvb_type` VARCHAR(40) NOT NULL DEFAULT '',        
+	`name` VARCHAR(100) NOT NULL DEFAULT '',
+	`description` VARCHAR(255) NOT NULL DEFAULT '',
+	PRIMARY KEY (`signal_source`),
+	UNIQUE KEY `name`(`name`),
+	CONSTRAINT `fk_klk_dvb_signal_sources_dvb_type` FOREIGN KEY (`dvb_type`) REFERENCES `klk_dvb_types` (`dvb_type`) ON DELETE CASCADE ON UPDATE CASCADE
+)
+ENGINE = InnoDB CHARSET=utf8;$$ 
+
+DROP TABLE  IF EXISTS `klk_dvb_resources`;$$ 
+CREATE TABLE `klk_dvb_resources` (
+	`resource` VARCHAR(40) NOT NULL DEFAULT '',
+  	`dvb_type` VARCHAR(40) NOT NULL,
+  	`signal_source` VARCHAR(40), 
+  	`adapter_no` TINYINT,  -- null means not assigned
+  	`frontend_no` TINYINT, -- null means not assigned
+  	PRIMARY KEY  (`resource`),
+  	UNIQUE KEY `resource` (`resource`),
+  	CONSTRAINT `fk_dvb_resources_resource` FOREIGN KEY (`resource`) REFERENCES `klk_resources` (`resource`) ON DELETE CASCADE ON UPDATE CASCADE,
+  	KEY `dvb_type` (`dvb_type`),
+  	CONSTRAINT `fk_dvb_resources_dvb_type` FOREIGN KEY (`dvb_type`) REFERENCES `klk_dvb_types` (`dvb_type`) ON DELETE CASCADE ON UPDATE CASCADE,
+	KEY `signal_source` (`signal_source`),
+	CONSTRAINT `fk_dvb_resources_signal_source` FOREIGN KEY (`signal_source`) REFERENCES `klk_dvb_signal_sources` (`signal_source`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$
+
+DROP TABLE  IF EXISTS `klk_dvb_channels`;$$
+CREATE TABLE `klk_dvb_channels` (
+  	`channel` VARCHAR(40) NOT NULL DEFAULT '',
+  	`name` VARCHAR(50) NOT NULL,
+	`provider`VARCHAR(50),
+	`channel_no`INTEGER NOT NULL,
+  	`signal_source` VARCHAR(40),
+	`bandwidth` INTEGER NOT NULL DEFAULT 0,
+  	`dvb_type` VARCHAR(40) NOT NULL DEFAULT '',	
+   	PRIMARY KEY (`channel`),
+	UNIQUE KEY `name_provider`(`name`, `provider`),
+	KEY `signal_source` (`signal_source`),
+  	CONSTRAINT `fk_dvb_channels_dvb_type` FOREIGN KEY (`dvb_type`) REFERENCES `klk_dvb_types` (`dvb_type`) ON DELETE CASCADE ON UPDATE CASCADE,
+	CONSTRAINT `fk_dvb_channels_signal_source` FOREIGN KEY (`signal_source`) REFERENCES `klk_dvb_signal_sources` (`signal_source`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$ 	
+
+		   	
+DROP TABLE  IF EXISTS `klk_dvb_s_channels`;$$
+CREATE TABLE `klk_dvb_s_channels` (
+  	`channel` VARCHAR(40) NOT NULL DEFAULT '',
+  	`diseq_source` TINYINT,
+  	`frequency` INTEGER NOT NULL,
+  	`polarity` CHAR NOT NULL,
+  	`symbol_rate` INT NOT NULL,
+  	`code_rate_hp` TINYINT NOT NULL,
+   	PRIMARY KEY (`channel`),
+	UNIQUE KEY `channel` (`channel`),
+	CONSTRAINT `fk_dvb_s_channels_channel` FOREIGN KEY (`channel`) REFERENCES `klk_dvb_channels` (`channel`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$ 	
+
+
+
+DROP TABLE  IF EXISTS `klk_dvb_t_channels`;$$ 
+CREATE TABLE`klk_dvb_t_channels` (
+  	`channel` VARCHAR(40) NOT NULL DEFAULT '',
+	`frequency` INT NOT NULL,
+  	`dvb_bandwidth` TINYINT NOT NULL, 
+  	`code_rate_hp` TINYINT NOT NULL,
+  	`code_rate_lp` TINYINT NOT NULL,
+  	`modulation` TINYINT NOT NULL,
+  	`transmode` TINYINT NOT NULL,
+	`guard` TINYINT NOT NULL,
+	`hierarchy` TINYINT NOT NULL,
+   	PRIMARY KEY (`channel`),
+	UNIQUE KEY `channel`(`channel`),
+	CONSTRAINT `fk_dvb_t_channels_channel` FOREIGN KEY (`channel`) REFERENCES `klk_dvb_channels` (`channel`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$ 
+
+
+DROP TABLE IF EXISTS `klk_dvb_c_channels`;$$ 
+CREATE TABLE `klk_dvb_c_channels` (
+  	`channel` VARCHAR(40) NOT NULL DEFAULT '',
+	`frequency` INT NOT NULL,
+  	`symbol_rate` INT NOT NULL,
+   	PRIMARY KEY (`channel`),
+	UNIQUE KEY `channel`(`channel`),
+	CONSTRAINT `fk_dvb_c_channels_channel` FOREIGN KEY (`channel`) REFERENCES `klk_dvb_channels` (`channel`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$ 
+
+DROP TABLE IF EXISTS `klk_dvb_pid_types`;$$
+CREATE TABLE `klk_dvb_pid_types` (
+  	`pid_type` VARCHAR(40) NOT NULL DEFAULT '',
+  	`description` VARCHAR(255) NOT NULL,
+	`bandwidth` INTEGER NOT NULL DEFAULT 0,
+  	PRIMARY KEY (`pid_type`),
+	UNIQUE KEY `pid_type`(`pid_type`)	
+)
+ENGINE =InnoDB DEFAULT CHARSET=utf8;$$
+
+DROP TABLE IF EXISTS `klk_dvb_pids`;$$
+CREATE TABLE`klk_dvb_pids` (
+  	`pid` VARCHAR(40) NOT NULL DEFAULT '',
+  	`pid_type` VARCHAR(40) NOT NULL,
+  	`channel` VARCHAR(40) NOT NULL,
+  	`pid_no` INT NULL,  
+  	`description` VARCHAR(255) NOT NULL,
+  	PRIMARY KEY (`pid`), 
+	UNIQUE KEY `pid`(`pid`),	
+	KEY `channel` (`channel`),
+	CONSTRAINT `fk_dvb_pids_channel` FOREIGN KEY (`channel`) REFERENCES `klk_dvb_channels` (`channel`) ON DELETE CASCADE ON UPDATE CASCADE
+) 
+ENGINE=InnoDB DEFAULT CHARSET=utf8;$$ 	
+
+/*
+
+DROP TABLE  IF EXISTS `klk_dvb_used`;$$
+CREATE TABLE`klk_dvb_used` (
+  	`used_pid` VARCHAR(40) NOT NULL DEFAULT '' ,
+  	`tuned_channel` VARCHAR(40) NOT NULL, 
+  	`pid` VARCHAR(40) NOT NULL, 
+  	PRIMARY KEY (`used_pid`),
+	UNIQUE KEY `used_pid`(`used_pid`) 
+)
+ENGINE =InnoDB DEFAULT CHARSET=utf8;$$
+
+*/
+
+SET FOREIGN_KEY_CHECKS=1;$$
+
+-- Trigers for log filling
+DROP TRIGGER IF EXISTS `klk_dvb_trigger_resources_insert`$$
+CREATE TRIGGER `klk_dvb_trigger_insert` AFTER INSERT ON `klk_dvb_resources`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_DVB_ID@');
+
+DROP TRIGGER IF EXISTS `klk_dvb_trigger_resources_update`$$
+CREATE TRIGGER `klk_dvb_trigger_update` AFTER UPDATE ON `klk_dvb_resources`
+FOR EACH ROW
+    CALL klk_log_add('@MODULE_DVB_ID@');
+
+-- FIXME!!! add trigger for delete
+
+-- stored procedures
+
+   
+/*
+Add  DVB type entry 
+
+0 = ok
+
+*/
+	  
+
+DROP PROCEDURE IF EXISTS`klk_dvb_type_add`;$$
+
+CREATE PROCEDURE `klk_dvb_type_add` (
+  	INOUT dvb_type VARCHAR(40),
+  	IN name VARCHAR(40),
+  	IN description VARCHAR(255),	
+  	OUT return_value INT 
+) 
+BEGIN
+	IF dvb_type IS null THEN
+		SET dvb_type = UUID();
+	END IF;
+
+	INSERT INTO klk_dvb_types(dvb_type,name,description) 
+	       VALUES  (dvb_type,name,description);
+	        		
+	SET return_value = 0;
+END$$
+   
+/*
+
+Add pid type entry 
+
+Result:
+	0	ok
+
+*/
+	  
+
+DROP PROCEDURE IF EXISTS`klk_dvb_pid_type_add`;$$
+
+CREATE PROCEDURE `klk_dvb_pid_type_add` (
+  	INOUT pid_type VARCHAR(40),
+  	IN description VARCHAR(255),
+	IN bandwidth INTEGER,
+  	OUT return_value INT 
+) 
+BEGIN
+	IF pid_type IS null THEN
+		SET pid_type = UUID();
+	END IF;
+
+	INSERT INTO  klk_dvb_pid_types(pid_type, description, bandwidth) VALUES (pid_type,description, bandwidth);		
+	
+	SET return_value = 0;
+	
+END;$$
+
+
+
+   
+/*
+
+Modify pid type entry 
+
+Result:
+	0 	ok
+	-1	invalid signal_source_type or nothing changed
+*/
+	  
+
+DROP PROCEDURE IF EXISTS`klk_dvb_pid_type_update`;$$
+
+CREATE PROCEDURE `klk_dvb_pid_type_update` (
+  	IN pid_type VARCHAR(40),
+  	IN description VARCHAR(255),
+	IN bandwidth INTEGER,
+  	OUT return_value INT 
+) 
+BEGIN
+	
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	UPDATE 
+		klk_dvb_pid_types
+	SET 
+		klk_dvb_pid_types.description = description,
+		klk_dvb_pid_types.bandwidth = bandwidth
+	WHERE 
+		klk_dvb_pid_types.pid_type = pid_type; 			
+			
+	SET return_value = 0;
+END;$$
+
+
+
+/*
+
+Delete pid_type entry 
+
+Result:
+	0	ok
+	-1	pid_type not found
+
+*/
+	  
+DROP PROCEDURE IF EXISTS `klk_dvb_pid_type_delete`;$$
+
+CREATE PROCEDURE `klk_dvb_pid_type_delete` (
+  	IN pid_type VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	DELETE FROM klk_pid_types WHERE klk_pid_types.pid_type = pid_type;
+
+	SET return_value = 0;
+END;$$
+
+
+
+
+DROP PROCEDURE IF EXISTS `klk_dvb_pid_type_list`;$$
+
+CREATE PROCEDURE `klk_dvb_pid_type_list` (
+)  
+
+BEGIN
+	SELECT pid_type, description, bandwidth  FROM klk_dvb_pid_types;
+END;$$
+	
+
+
+
+
+/*   
+
+Add or modify signal source entry
+host = null to add a new sorce, guid to edit
+
+Result:
+	0	ok
+	-1	source not found
+*/
+	  
+
+DROP PROCEDURE IF EXISTS`klk_dvb_signal_source_add`;$$
+
+CREATE PROCEDURE `klk_dvb_signal_source_add` (
+  	IN signal_source VARCHAR(40),
+  	IN dvb_type VARCHAR(40), 
+  	IN name VARCHAR(100), 
+  	IN description VARCHAR(250),
+  	OUT return_value INT 
+) 
+BEGIN
+	INSERT INTO klk_dvb_signal_sources(signal_source,dvb_type,
+	       	    name, description)
+	VALUES (signal_source,dvb_type,name,description);
+	SET return_value = 0;
+END;$$
+
+
+
+/*   
+
+Delete signal source 
+
+
+Result:
+	0 	ok
+	-1	signal_source invalid
+
+*/
+	  
+
+DROP PROCEDURE IF EXISTS`klk_dvb_signal_source_delete`;$$
+
+CREATE PROCEDURE `klk_dvb_signal_source_delete` (
+  	IN signal_source VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	DELETE FROM klk_dvb_signal_sources WHERE klk_dvb_signal_sources.signal_source = signal_source;
+	
+	SET return_value = 0;
+END;$$
+
+-- Lists signal sources by DVB dev name
+DROP PROCEDURE IF EXISTS`klk_dvb_signal_source_list`;$$
+
+CREATE PROCEDURE `klk_dvb_signal_source_list` (
+  	IN dev_name VARCHAR(100)
+)  
+BEGIN	
+	DECLARE dvb_type VARCHAR(40);
+
+	SELECT klk_dvb_resources.dvb_type INTO dvb_type FROM 
+	       klk_dvb_resources, klk_resources WHERE 
+	       klk_dvb_resources.resource = klk_resources.resource AND
+	       klk_resources.resource_name = dev_name;
+	
+	SELECT signal_source,name,description FROM klk_dvb_signal_sources WHERE dvb_type=klk_dvb_signal_sources.dvb_type;
+END;$$
+
+/*
+
+	Read dvb resource entry by its uuid
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_signal_source_get_name`;$$
+CREATE PROCEDURE `klk_dvb_signal_source_get_name` (
+  	IN source VARCHAR(40), 
+   	OUT name VARCHAR(100),
+   	OUT return_value INT 
+) 
+BEGIN	
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT
+		klk_dvb_signal_sources.name
+	INTO
+		name
+	FROM
+		klk_dvb_signal_sources
+	WHERE 
+		klk_dvb_signal_sources.signal_source = source;
+
+	SET return_value = 0;
+END;$$
+
+
+/*
+
+Procedure is called to add a new dvb card 
+
+Result:
+	0 	ok
+	-1	failed
+	-2	not enough bandwith
+
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_dvb_resource_add`;$$
+
+CREATE PROCEDURE `klk_dvb_resource_add` (
+  	IN bus VARCHAR(40), 
+  	IN dvb_type VARCHAR(40),
+  	IN signal_source VARCHAR(40),
+	IN enabled TINYINT,
+  	IN adapter_no TINYINT,
+  	IN frontend_no TINYINT,
+  	IN resource_name VARCHAR(50),
+  	OUT resource VARCHAR(40),
+  	OUT return_value INT 
+) 
+BEGIN
+
+	-- see ticket https://23projects.org/projects/kalinka/ticket/31
+		
+	DECLARE resource_type VARCHAR(40);
+	DECLARE signal_source_type VARCHAR(40);	
+	DECLARE description VARCHAR(255);	
+
+	SET resource_type = '@RESOURCE_TYPE_DVB@';
+	SET resource = UUID();	
+	-- create entry in central resource table 	
+	CALL klk_resource_add(bus, resource_type, resource_name, resource,  return_value);	
+
+	-- set enabled as requested
+	CALL klk_resource_enable(resource, enabled, return_value);
+
+	-- create dvb entry		
+	INSERT INTO klk_dvb_resources(resource, dvb_type, signal_source, adapter_no, frontend_no)
+	VALUES (resource,dvb_type, signal_source, adapter_no, frontend_no); 
+	
+	SET return_value = 0;
+
+END;$$
+
+/*
+	Gets dvb resource GUID
+	if the resource is not in the DB it will be added
+	@param[in] host_name the host name
+
+*/  
+DROP PROCEDURE IF EXISTS `klk_dvb_resource_get_uuid`$$
+CREATE PROCEDURE `klk_dvb_resource_get_uuid` (
+  	IN bus VARCHAR(40), 
+  	IN dvb_type VARCHAR(40),
+  	IN adapter_no TINYINT,
+  	IN frontend_no TINYINT,
+  	OUT resource_name VARCHAR(50),
+  	OUT resource VARCHAR(40),
+  	OUT signal_source VARCHAR(40),
+  	OUT bandwidth INT,
+  	OUT return_value INT 
+) 
+BEGIN 
+        DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	SELECT klk_dvb_resources.resource, klk_dvb_resources.signal_source, klk_resources.resource_name, klk_resources.bandwidth	 
+	       INTO resource, signal_source, resource_name, bandwidth
+	FROM klk_dvb_resources,klk_resources 
+		WHERE klk_dvb_resources.resource=klk_resources.resource AND
+		klk_dvb_resources.dvb_type=dvb_type AND
+		klk_dvb_resources.adapter_no=adapter_no AND
+		klk_dvb_resources.frontend_no=frontend_no AND
+		klk_resources.bus=bus;
+	SET return_value = 0;
+END$$
+
+/*
+
+Procedure is called to update dvb card basic data
+
+Result:
+	0 	ok
+	-1	failed
+	-2	not enough bandwidth
+
+*/
+
+
+DROP PROCEDURE IF EXISTS`klk_dvb_resource_update`;$$
+
+CREATE PROCEDURE `klk_dvb_resource_update` (
+  	IN resource VARCHAR(40), 
+   	IN signal_source VARCHAR(40),
+	IN enabled TINYINT,
+  	IN adapter_no TINYINT,
+  	IN frontend_no TINYINT,
+   	OUT return_value INT 
+) 
+BEGIN	
+	CALL `klk_resource_enable`(resource, enable, return_value);
+  	
+	IF NOT(return_value) THEN
+		BEGIN 
+			DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+			UPDATE 
+				klk_dvb_resources
+			SET 
+				klk_dvb_resources.signal_source = signal_source,
+				klk_dvb_resources.adapter_no = adapter_no,
+				klk_dvb_resources.frontend_no = frontend_no
+			WHERE 	
+				klk_dvb_resources.resource = resource; 			
+			
+			SET return_value = 0;
+		END;
+	END IF;
+END;$$
+
+DROP PROCEDURE IF EXISTS`klk_dvb_resource_update_signal_source`;$$
+CREATE PROCEDURE `klk_dvb_resource_update_signal_source` (
+  	IN dev_name VARCHAR(100), 
+   	IN source_name VARCHAR(40),
+   	OUT return_value INT 
+) 
+BEGIN	
+	DECLARE signal_source VARCHAR(40);
+	DECLARE resource VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT klk_resources.resource INTO  resource FROM 
+	       klk_resources WHERE 
+	       klk_resources.resource_name = dev_name;
+
+	SELECT klk_dvb_signal_sources.signal_source INTO signal_source 
+	       FROM klk_dvb_signal_sources WHERE 
+	       	    klk_dvb_signal_sources.name = source_name;
+
+	UPDATE 
+		klk_dvb_resources
+	SET 
+		klk_dvb_resources.signal_source = signal_source
+
+	WHERE 	
+		klk_dvb_resources.resource = resource; 			
+	
+	SET return_value = 0;
+END;$$
+
+
+
+
+/*
+
+Remove DVB card entry
+
+Result:
+	0 	ok
+	-1	failed
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_resource_delete`;$$
+
+ 
+CREATE PROCEDURE `klk_dvb_resource_delete` (
+  	IN resource VARCHAR(40), 
+   	OUT return_value INT 
+) 
+BEGIN	
+	-- disable resource (may used later)
+	CALL `klk_resource_enable`(resource, 0, return_value);
+  	
+	IF NOT(return_value) THEN
+		-- delete 
+		CALL `klk_resource_delete`(resource, return_value);
+	END IF;
+
+END;$$
+
+
+/*
+
+	Read dvb resource entry by its uuid
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_resource_get`;$$
+
+CREATE PROCEDURE `klk_dvb_resource_get` (
+  	IN resource VARCHAR(40), 
+   	OUT signal_source VARCHAR(40),
+	OUT dvb_type VARCHAR(40),
+  	OUT adapter_no TINYINT,
+  	OUT frontend_no TINYINT,
+  	OUT resource_name VARCHAR(50),
+   	OUT return_value INT 
+) 
+BEGIN	
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT
+		klk_dvb_resources.signal_source,
+		klk_dvb_resources.adapter_no,
+		klk_dvb_resources.frontend_no,
+		klk_dvb_resources.dvb_type
+	INTO
+		signal_source,
+		adapter_no,
+		frontend_no,
+		dvb_type
+	FROM
+		klk_dvb_resources
+	WHERE 
+		klk_dvb_resources.resource = resource;
+		
+	SELECT 
+		klk_resources.resource_name
+	INTO
+		resource_name
+	FROM 
+		klk_resources
+	WHERE 
+		klk_resources.resource = resource;
+
+	SET return_value = 0;
+END;$$
+
+
+/*
+
+  This procedure looks for a channel
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_channel_find`;$$
+CREATE PROCEDURE `klk_dvb_channel_find` (
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	OUT channel VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT klk_dvb_channels.channel 
+	INTO channel 
+	FROM klk_dvb_channels 
+	WHERE klk_dvb_channels.name = name AND 
+	      klk_dvb_channels.provider = provider;
+	SET return_value = 0; 
+END;$$
+
+
+
+
+
+/*
+
+
+This procedure adds a dvb-s tv channel to the channel list. 
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_s_channel_add`;$$
+
+CREATE PROCEDURE `klk_dvb_s_channel_add` (
+	INOUT channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN diseq_source TINYINT,
+	IN frequency INT,
+	IN polarity CHAR,
+	IN symbol_rate INT,
+	IN code_rate_hp TINYINT,
+	IN channel_no INTEGER,
+	OUT return_value INT
+)
+BEGIN
+	-- fixme, don't add channels twice
+	
+	IF (channel IS NULL) THEN
+		SET channel = UUID();
+	END IF;
+
+	INSERT INTO klk_dvb_channels(
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		dvb_type)
+	VALUES (
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		'@DVB_TYPE_DVB_S@');
+
+	INSERT INTO klk_dvb_s_channels(
+		channel,		
+		diseq_source,
+		frequency,
+		polarity,
+		symbol_rate,
+		code_rate_hp)
+	VALUES (
+		channel,		
+		diseq_source,
+		frequency,
+		polarity,
+		symbol_rate,
+		code_rate_hp);
+	
+	SET return_value = 0; 
+END;$$
+
+
+
+DROP PROCEDURE IF EXISTS`klk_dvb_s_channel_update`;$$
+
+CREATE PROCEDURE `klk_dvb_s_channel_update` (
+	IN channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN diseq_source TINYINT,
+	IN frequency INT,
+	IN polarity CHAR,
+	IN symbol_rate INT,
+	IN code_rate_hp TINYINT,
+	IN channel_no INTEGER,
+	OUT return_value INT
+)
+BEGIN
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	UPDATE
+		klk_dvb_channels
+	SET
+		klk_dvb_channels.signal_source = signal_source,
+		klk_dvb_channels.name = name,
+		klk_dvb_channels.provider = provider,
+		klk_dvb_channels.channel_no = channel_no
+	WHERE
+		klk_dvb_channels.channel = channel;	
+		
+	UPDATE
+		klk_dvb_s_channels
+	SET
+		klk_dvb_s_channels.diseq_source = diseq_source,
+		klk_dvb_s_channels.frequency = frequency,
+		klk_dvb_s_channels.polarity = polarity,
+		klk_dvb_s_channels.symbol_rate = symbol_rate,
+		klk_dvb_s_channels.code_rate_hp = code_rate_hp
+	WHERE
+		klk_dvb_s_channels.channel = channel;
+
+	SET return_value = 0; 
+END;$$
+
+
+/*
+
+This procedure addsor updates a dvb-s tv channel to the channel list. 
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_s_channel_addupdate`;$$
+
+CREATE PROCEDURE `klk_dvb_s_channel_addupdate` (
+	INOUT channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN diseq_source TINYINT,
+	IN frequency INT,
+	IN polarity CHAR,
+	IN symbol_rate INT,
+	IN code_rate_hp TINYINT,
+	IN channel_no INTEGER,
+	OUT return_value INT
+)
+BEGIN
+	DECLARE found_channel VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND 
+		CALL klk_dvb_s_channel_add(channel, signal_source,
+		name, provider, diseq_source, frequency,
+		polarity, symbol_rate, code_rate_hp,
+		channel_no, return_value);
+
+	SELECT klk_dvb_channels.channel 
+	       INTO found_channel FROM klk_dvb_channels
+	WHERE klk_dvb_channels.channel = channel FOR UPDATE;
+
+	SET channel = found_channel;
+
+	CALL klk_dvb_s_channel_update(channel, signal_source,
+		name, provider, diseq_source, frequency,
+		polarity, symbol_rate, code_rate_hp,
+		channel_no, return_value);	
+END;$$
+
+
+/*
+
+   Deletes a channel vom dvb-s list. 
+   
+   channel = NULL deletes all channels
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_channel_delete`;$$
+
+CREATE PROCEDURE `klk_dvb_channel_delete` (
+	IN channel VARCHAR(40),
+	OUT return_value INT
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	
+	IF (channel IS NULL) THEN
+		DELETE FROM klk_dvb_channels;
+	ELSE	
+		DELETE FROM klk_dvb_channels WHERE klk_dvb_channels.channel = channel;
+	END IF;
+	
+	SET return_value = 0;
+
+END;$$
+
+/* 
+
+   get dvb-s channel data by its uuid.
+
+*/
+
+DROP PROCEDURE IF EXISTS `klk_dvb_s_channel_get`;$$
+
+CREATE PROCEDURE `klk_dvb_s_channel_get` (
+	IN channel VARCHAR(40),
+	OUT signal_source VARCHAR(40),	
+	OUT name VARCHAR(50),
+	OUT provider VARCHAR(50),
+	OUT diseq_source TINYINT,
+	OUT frequency INT,
+	OUT polarity CHAR,
+	OUT symbol_rate INT,
+	OUT code_rate_hp TINYINT,
+	OUT channel_no INTEGER,
+	OUT return_value INT
+
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+	SELECT klk_dvb_channels.name, 
+	       klk_dvb_channels.provider, 
+	       klk_dvb_channels.channel_no, 
+	       klk_dvb_channels.signal_source
+	INTO name, provider, channel_no, signal_source 
+	FROM klk_dvb_channels 
+	WHERE klk_dvb_channels.channel = channel;
+
+	SELECT
+	       klk_dvb_s_channels.diseq_source, 
+	       klk_dvb_s_channels.frequency, 
+	       klk_dvb_s_channels.polarity, 
+	       klk_dvb_s_channels.symbol_rate, 
+	       klk_dvb_s_channels.code_rate_hp
+	INTO diseq_source, frequency, polarity, symbol_rate, 
+	code_rate_hp
+	FROM klk_dvb_s_channels
+	WHERE klk_dvb_s_channels.channel = channel;
+
+	SET return_value = 0;
+END;$$
+
+
+/*
+
+
+This procedure adds a dvb-t tv channel to the channel ist. 
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_t_channel_add`;$$
+
+CREATE PROCEDURE `klk_dvb_t_channel_add` (
+	INOUT channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN frequency INT,
+	IN dvb_bandwidth TINYINT,
+	IN code_rate_hp TINYINT,
+	IN code_rate_lp TINYINT,
+	IN modulation TINYINT,
+	IN transmode TINYINT,
+	IN channel_no INTEGER,
+	IN guard TINYINT,
+	IN hierarchy TINYINT,
+	OUT return_value INT
+)
+BEGIN
+	-- fixme, don't add channels twice 
+	
+	IF (channel IS NULL) THEN
+		SET channel = UUID();
+	END IF;
+
+	INSERT INTO klk_dvb_channels(
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		dvb_type)
+	VALUES (
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		'@DVB_TYPE_DVB_T@');
+
+	INSERT INTO klk_dvb_t_channels(
+		channel,		
+		frequency,
+		dvb_bandwidth,
+		code_rate_hp,
+		code_rate_lp,
+		modulation,
+		transmode,
+		guard,
+		hierarchy)
+	VALUES (
+		channel,		
+		frequency,
+		dvb_bandwidth,
+		code_rate_hp,
+		code_rate_lp,
+		modulation,
+		transmode,
+		guard,
+		hierarchy);
+	
+	SET return_value = 0; 
+END;$$
+
+
+DROP PROCEDURE IF EXISTS`klk_dvb_t_channel_update`;$$
+
+CREATE PROCEDURE `klk_dvb_t_channel_update` (
+	IN channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN frequency INT,
+	IN dvb_bandwidth TINYINT,
+	IN code_rate_hp TINYINT,
+	IN code_rate_lp TINYINT,
+	IN modulation TINYINT,
+	IN transmode TINYINT,
+	IN channel_no INTEGER,
+	IN guard TINYINT,
+	IN hierarchy TINYINT,
+	OUT return_value INT
+)
+BEGIN
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	UPDATE
+		klk_dvb_channels
+	SET
+		klk_dvb_channels.signal_source = signal_source,
+		klk_dvb_channels.name = name,
+		klk_dvb_channels.provider = provider,
+		klk_dvb_channels.channel_no = channel_no
+	WHERE
+		klk_dvb_channels.channel = channel;
+
+	
+	UPDATE
+		klk_dvb_t_channels
+	SET
+		klk_dvb_t_channels.frequency = frequency,
+		klk_dvb_t_channels.dvb_bandwidth = dvb_bandwidth,
+		klk_dvb_t_channels.code_rate_hp = code_rate_hp,
+		klk_dvb_t_channels.code_rate_lp = code_rate_lp,
+		klk_dvb_t_channels.modulation = modulation,
+		klk_dvb_t_channels.transmode = transmode,
+		klk_dvb_t_channels.guard = guard,
+		klk_dvb_t_channels.hierarchy = hierarchy
+	WHERE
+		klk_dvb_t_channels.channel = channel;
+
+	SET return_value = 0; 
+END;$$
+
+/*
+
+This procedure addsor updates a dvb-t tv channel to the channel list. 
+
+*/
+
+DROP PROCEDURE IF EXISTS`klk_dvb_t_channel_addupdate`;$$
+
+CREATE PROCEDURE `klk_dvb_t_channel_addupdate` (
+	IN channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN frequency INT,
+	IN dvb_bandwidth TINYINT,
+	IN code_rate_hp TINYINT,
+	IN code_rate_lp TINYINT,
+	IN modulation TINYINT,
+	IN transmode TINYINT,
+	IN channel_no INTEGER,
+	IN guard TINYINT,
+	IN hierarchy TINYINT,
+	OUT return_value INT
+)
+BEGIN
+	DECLARE found_channel VARCHAR(40);
+
+	DECLARE EXIT HANDLER FOR NOT FOUND 
+		CALL klk_dvb_t_channel_add(channel, signal_source,
+		name, provider, frequency, dvb_bandwidth, 
+		code_rate_hp, code_rate_lp, modulation, transmode,
+		channel_no, guard, hierarchy, return_value);
+
+	SELECT klk_dvb_channels.channel 
+	       INTO found_channel FROM klk_dvb_channels
+	WHERE klk_dvb_channels.channel = channel FOR UPDATE;
+
+	SET channel = found_channel;
+
+	CALL klk_dvb_t_channel_update(channel, signal_source,
+		name, provider, frequency, dvb_bandwidth, 
+		code_rate_hp, code_rate_lp, modulation, transmode,
+		channel_no, guard, hierarchy, return_value);
+END;$$
+
+
+/* 
+
+   get dvb-t channel data by its uuid.
+
+*/
+
+DROP PROCEDURE IF EXISTS `klk_dvb_t_channel_get`;$$
+CREATE PROCEDURE `klk_dvb_t_channel_get` (
+	IN channel VARCHAR(40),
+	OUT signal_source VARCHAR(40),	
+	OUT name VARCHAR(50),
+	OUT provider VARCHAR(50),
+	OUT frequency INT,
+	OUT code_rate_hp TINYINT,
+	OUT code_rate_lp TINYINT,
+	OUT modulation TINYINT,
+	OUT transmode TINYINT,
+	OUT channel_no INTEGER,
+	OUT guard TINYINT,
+	OUT hierarchy TINYINT,
+	OUT dvb_bandwidth TINYINT,
+	OUT return_value INT
+)
+BEGIN
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT klk_dvb_channels.name, 
+	       klk_dvb_channels.provider, 
+	       klk_dvb_channels.channel_no, 
+	       klk_dvb_channels.signal_source
+	INTO name, provider, channel_no, signal_source 
+	FROM klk_dvb_channels 
+	WHERE klk_dvb_channels.channel = channel;
+
+	SELECT 
+	klk_dvb_t_channels.frequency,
+	klk_dvb_t_channels.code_rate_hp,
+	klk_dvb_t_channels.code_rate_lp, 
+	klk_dvb_t_channels.modulation,
+	klk_dvb_t_channels.transmode,
+	klk_dvb_t_channels.guard,
+	klk_dvb_t_channels.hierarchy,
+	klk_dvb_t_channels.dvb_bandwidth
+	INTO frequency, code_rate_hp, code_rate_lp,
+	modulation, transmode, guard, hierarchy,
+	dvb_bandwidth
+	FROM klk_dvb_t_channels
+	WHERE klk_dvb_t_channels.channel = channel;
+
+	SET return_value = 0;
+END;$$
+
+
+
+
+/*
+
+
+This procedure adds a dvb-c tv channel to the channel ist. 
+
+*/
+
+DROP PROCEDURE IF EXISTS `klk_dvb_c_channel_add`;$$
+
+CREATE PROCEDURE `klk_dvb_c_channel_add` (
+	INOUT channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN frequency INTEGER,
+	IN symbol_rate INTEGER,
+	IN channel_no INTEGER,
+	OUT return_value INTEGER
+)
+BEGIN
+	-- fixme: don't add channels twice
+	
+	IF (channel IS NULL) THEN
+		SET channel = UUID();
+	END IF;
+
+	INSERT INTO klk_dvb_channels(
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		dvb_type)
+	VALUES (
+		channel,		
+		signal_source,
+		name,
+		provider,
+		channel_no,
+		'@DVB_TYPE_DVB_C@');
+
+
+	INSERT INTO klk_dvb_c_channels(
+		channel,		
+		frequency,
+		symbol_rate)
+	VALUES (
+		channel,		
+		frequency,
+		symbol_rate);
+		
+	SET return_value = 0; 
+
+END;$$
+
+
+
+
+DROP PROCEDURE IF EXISTS `klk_dvb_c_channel_update`;$$
+
+CREATE PROCEDURE `klk_dvb_c_channel_update` (
+	OUT channel VARCHAR(40),
+	IN signal_source VARCHAR(40),	
+	IN name VARCHAR(50),
+	IN provider VARCHAR(50),
+	IN frequency INTEGER,
+	IN symbol_rate INTEGER,
+	IN channel_no INTEGER,
+	OUT return_value INTEGER
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	UPDATE
+		klk_dvb_channels
+	SET
+		klk_dvb_channels.signal_source = signal_source,
+		klk_dvb_channels.name = name,
+		klk_dvb_channels.provider = provider,
+		klk_dvb_channels.channel_no = channel_no
+	WHERE
+		klk_dvb_channels.channel = channel;
+
+
+	UPDATE
+		klk_dvb_c_channels
+	SET
+		klk_dvb_c_channel.frequency = frequency,
+		klk_dvb_c_channel.symbol_rate = symbol_rate
+	WHERE
+		klk_dvb_c_channel.channel = channel;
+
+	SET return_value = 0; 
+
+END;$$
+
+/* 
+
+   Lists all channels assigned to an input source
+
+   signal_source = null lists for all signal sources
+
+*/
+
+DROP PROCEDURE IF EXISTS `klk_dvb_c_channel_list`;$$
+
+CREATE PROCEDURE `klk_dvb_c_channel_list` (
+	IN signal_source VARCHAR(40)
+)
+BEGIN
+	IF (signal_source IS NULL) THEN
+		SELECT klk_dvb_channels.channel, 
+		       klk_dvb_channels.name, 
+		       klk_dvb_channels.provider, 
+		       klk_dvb_channels.channel_no, 
+		       klk_dvb_channels.signal_source, 
+		       klk_dvb_c_channels.frequency, 
+		       klk_dvb_c_channels.symbol_rate
+		FROM klk_dvb_c_channels, klk_dvb_channels
+		WHERE klk_dvb_c_channels.channel=klk_dvb_channels.channel
+		ORDER BY name DESC;
+	ELSE
+		SELECT klk_dvb_channels.channel, 
+		       klk_dvb_channels.name, 
+		       klk_dvb_channels.provider, 
+		       klk_dvb_channels.channel_no, 
+		       klk_dvb_channels.signal_source, 
+		       klk_dvb_c_channels.frequency, 
+		       klk_dvb_c_channels.symbol_rate
+		FROM klk_dvb_c_channels, klk_dvb_channels
+		WHERE klk_dvb_c_channels.channel=klk_dvb_channels.channel AND
+		klk_dvb_c_channels.signal_source = signal_source 
+		ORDER BY name DESC; 
+	END IF;
+
+END;$$
+
+
+/*
+   get dvb-c channel data by its uuid.
+*/
+
+DROP PROCEDURE IF EXISTS `klk_dvb_c_channel_get`;$$
+CREATE PROCEDURE `klk_dvb_c_channel_get` (
+	IN channel VARCHAR(40),
+	OUT signal_source VARCHAR(40),	
+	OUT name VARCHAR(50),
+	OUT provider VARCHAR(50),
+	OUT frequency INT,
+	OUT symbol_rate TINYINT,
+	OUT channel_no INTEGER,
+	OUT return_value INT
+)
+BEGIN
+
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	SELECT klk_dvb_channels.name, 
+	       klk_dvb_channels.provider, 
+	       klk_dvb_channels.channel_no, 
+	       klk_dvb_channels.signal_source
+	INTO name, provider, channel_no, signal_source 
+	FROM klk_dvb_channels 
+	WHERE klk_dvb_channels.channel = channel;
+
+	SELECT 
+	klk_dvb_c_channels.frequency, 
+	klk_dvb_c_channels.symbol_rate
+	INTO frequency, symbol_rate
+	FROM  klk_dvb_c_channels
+	WHERE klk_dvb_c_channels.channel = channel;
+
+	SET return_value = 0;
+
+END;$$
+
+/*
+
+This procedure adds a pid to a dvb tv channel
+
+*/
+DROP PROCEDURE IF EXISTS `klk_dvb_channel_pid_add`;$$ 
+CREATE PROCEDURE `klk_dvb_channel_pid_add` (
+	INOUT pid VARCHAR(40),
+	IN channel VARCHAR(40),
+	IN pid_type VARCHAR(40),
+	IN pid_no INTEGER,
+	IN description VARCHAR(255),
+	OUT return_value INTEGER
+)
+BEGIN
+
+	DECLARE bandwidth_pid INTEGER DEFAULT 0;
+	DECLARE bandwidth_channel INTEGER DEFAULT 0;
+	DECLARE EXIT HANDLER FOR NOT FOUND SET return_value = -1;
+
+	IF (pid IS NULL) THEN
+		SET pid = UUID();
+	END IF;
+
+	-- todo: prevent afor adding the same pid to a channel twice
+
+
+	-- determain pid_type bandwidth
+
+	SELECT klk_dvb_pid_types.bandwidth INTO bandwidth_pid FROM klk_dvb_pid_types WHERE klk_dvb_pid_types.pid_type = pid_type;
+	
+	SELECT klk_dvb_channels.bandwidth INTO bandwidth_channel FROM klk_dvb_channels WHERE klk_dvb_channels.channel = channel;
+
+	-- update channel bandwidth
+	 
+	UPDATE 
+		klk_dvb_channels
+	SET
+		klk_dvb_channels.bandwidth = bandwidth_channel + bandwidth_pid
+	WHERE 
+		klk_dvb_channels.channel = channel;
+
+
+	-- insert pid
+
+	INSERT INTO klk_dvb_pids(
+		pid,
+		channel,		
+		pid_type,
+		pid_no,
+		description)
+	VALUES (
+		pid,	
+		channel,		
+		pid_type,
+		pid_no,
+		description);
+
+	SET return_value = 0; 
+
+END;$$
+
+/*
+
+This procedure adds a pid to a dvb tv channel
+
+*/
+DROP PROCEDURE IF EXISTS `klk_dvb_channel_pid_del`;$$ 
+CREATE PROCEDURE `klk_dvb_channel_pid_del` (
+	IN channel VARCHAR(40),
+	OUT return_value INTEGER
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION SET return_value = -1;
+
+	DELETE FROM klk_dvb_pids WHERE klk_dvb_pids.channel=channel;
+
+	SET return_value = 0; 
+END;$$
+
+
+/*
+
+	Lists all pids to given channel
+
+
+*/
+DROP PROCEDURE IF EXISTS `klk_dvb_channel_pid_list`;$$ 
+
+CREATE PROCEDURE `klk_dvb_channel_pid_list` (
+	IN channel VARCHAR(40)
+)
+BEGIN
+	SELECT pid, pid_type, pid_no, description FROM klk_dvb_pids WHERE klk_dvb_pids.channel = channel;
+END;$$
+
+
+-- create default data
+
+-- create resource type 'dvb input'
+SET @resource_type_dvb = '@RESOURCE_TYPE_DVB@';$$
+SET @description = 'dvb input';$$
+SET @bandwidth = 24000;$$
+CALL klk_resource_type_add(@resource_type_dvb,@description,@bandwidth,@result);$$
+
+
+-- create dvb types
+
+-- Some variables
+SET @dvb_type_dvb_s = '@DVB_TYPE_DVB_S@';$$
+SET @dvb_type_dvb_s2 = '@DVB_TYPE_DVB_S2@';$$
+SET @dvb_type_dvb_t = '@DVB_TYPE_DVB_T@';$$
+SET @dvb_type_dvb_t2 = '@DVB_TYPE_DVB_T2@';$$
+SET @dvb_type_dvb_c = '@DVB_TYPE_DVB_C@';$$
+
+CALL `klk_dvb_type_add`(@dvb_type_dvb_s,'dvb-s','DVB-S card', @result);$$
+CALL `klk_dvb_type_add`(@dvb_type_dvb_t,'dvb-t', 'DVB-T card',@result);$$
+CALL `klk_dvb_type_add`(@dvb_type_dvb_s2,'dvb-s2', 'DVB-S2 card',@result);$$
+CALL `klk_dvb_type_add`(@dvb_type_dvb_t2,'dvb-t2', 'DVB-T2 card',@result);$$
+CALL `klk_dvb_type_add`(@dvb_type_dvb_c,'dvb-c', 'DVB-C card',@result);$$
+
+
+-- create signal source types (examples)
+SET @dvb_signal_source_terrestrial = '@DVB_SIGNAL_SOURCE_TERRESTRIAL@';$$
+SET @dvb_signal_source_cable = '@DVB_SIGNAL_SOURCE_CABLE@';$$
+SET @dvb_signal_source_sat = '@DVB_SIGNAL_SOURCE_SAT@';$$
+SET @dvb_signal_source_name_terrestrial = 
+    '@DVB_SIGNAL_SOURCE_NAME_TERRESTRIAL@';$$
+SET @dvb_signal_source_name_cable = 
+    '@DVB_SIGNAL_SOURCE_NAME_CABLE@';$$
+SET @dvb_signal_source_name_sat = 
+    '@DVB_SIGNAL_SOURCE_NAME_SAT@';$$
+
+CALL klk_dvb_signal_source_add(@dvb_signal_source_terrestrial,
+     @dvb_type_dvb_t, @dvb_signal_source_name_terrestrial, 
+     'generic DVB-T antenna',@result);$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_cable,
+     @dvb_type_dvb_c, @dvb_signal_source_name_cable, 
+     'generic DVB-C cable',@result);$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_sat,
+     @dvb_type_dvb_s, @dvb_signal_source_name_sat, 
+     'generic DVB-S antenna',@result);$$
+
+SET @dvb_signal_source_eutelsatw4 = '@DVB_SIGNAL_SOURCE_EUTELSATW4@';$$
+SET @dvb_signal_source_name_eutelsatw4 = 
+    '@DVB_SIGNAL_SOURCE_NAME_EUTELSATW4@';$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_eutelsatw4,
+     @dvb_type_dvb_s, @dvb_signal_source_name_eutelsatw4, 
+     'Eutelsat W4 Europe 36.0E. All polarizations and frequencies',
+     @result);$$
+
+SET @dvb_signal_source_hotbird = 
+    '@DVB_SIGNAL_SOURCE_HOTBIRD_13E@';$$
+SET @dvb_signal_source_name_hotbird = 
+    '@DVB_SIGNAL_SOURCE_NAME_HOTBIRD_13E@';$$
+CALL klk_dvb_signal_source_add(@dvb_signal_source_hotbird,
+     @dvb_type_dvb_s, @dvb_signal_source_name_hotbird, 
+     'Hot Bird 6/8/9 at 13.0E', @result);$$
+
+-- create pid type entries
+SET @dvb_pid_type_unknown = '@DVB_PID_TYPE_UNKNOWN@';$$
+SET @dvb_pid_type_video = '@DVB_PID_TYPE_VIDEO@';$$
+SET @dvb_pid_type_audio = '@DVB_PID_TYPE_AUDIO@';$$
+SET @dvb_pid_type_data = '@DVB_PID_TYPE_DATA@';$$
+SET @dvb_pid_type_subtitle = '@DVB_PID_TYPE_SUBTITLE@';$$
+SET @dvb_pid_type_videotext = '@DVB_PID_TYPE_VIDEOTEXT@';$$
+
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_unknown,'unknown',0,@result);$$
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_video,'video',6000,@result);$$
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_audio,'audio',256,@result);$$
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_data,'data',1000,@result);$$
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_subtitle,'subtitle and cc',33,@result);$$
+CALL `klk_dvb_pid_type_add`(@dvb_pid_type_videotext,'video text',33,@result);$$
+
+
+
+DELIMITER ;
+
+
+
+ 
+
+

@@ -1,0 +1,126 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create host (external)
+SET @hostname_ext = 'external testserver';$$
+SET @hostguid_ext = null;$$
+call klk_host_get_uuid(@hostname_ext, @hostguid_ext);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create network card
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+SET @node_name = '@NETDEV_DEFAULT@';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+
+SET @address = NULL;$$
+SET @ipaddress = '127.0.0.1';$$
+SET @ipmask = '255.0.0.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+
+/* APPLICATION SETUP */
+
+-- create transcode demo application
+SET @application = '@TRANSCODE_TESTAPPLICATION@' ;$$
+SET @module = '@MODULE_TRANS_ID@' ;$$
+SET @app_name = 'transcode@testserver';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'transcode server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+-- create transcode demo application on external server
+SET @application_ext = '9eb8123a-ace7-4131-86c7-54ad1d33a185' ;$$
+SET @app_name = 'transcode@external testserver';$$
+CALL klk_application_add(@application_ext, @module, @app_name, 
+     @enabled, @status, @priority, @hostguid_ext, 
+     @description, @return_value);$$ 
+
+
+-- create main application data --
+
+-- test input data from an avi file
+SET @input_file_uuid='@TRANSCODE_TESTINPUTFILEMPEGTS_UUID@';$$
+call klk_file_add(@input_file_uuid, '@TRANSCODE_TESTINPUTFILEMPEGTS_NAME@',
+     '@TRANSCODE_TESTINPUTFILEMPEGTS_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+
+SET @input_source_uuid = @input_file_uuid;$$
+SET @input_source_name = '@TRANSCODE_TESTINPUTSOURCE_NAME@';$$
+SET @input_media_type = '@MEDIA_TYPE_AUTO@';$$
+SET @input_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';$$
+call klk_app_transcode_source_add(@input_source_uuid, @input_source_name,
+ @input_media_type, @input_source_type, @return_value);$$
+
+-- test output data to a flv/theora file
+SET @output_file_uuid='@TRANSCODE_TESTOUTPUTFILEMPEGTS_UUID@';$$
+call klk_file_add(@output_file_uuid, '@TRANSCODE_TESTOUTPUTFILEMPEGTS_NAME@',
+     '@TRANSCODE_TESTOUTPUTFILEMPEGTS_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+
+-- Main test for different encoders
+-- the difference is in the encoder type only
+DROP PROCEDURE IF EXISTS `klk_app_transcode_test_mjpeg`;$$
+CREATE PROCEDURE `klk_app_transcode_test_mjpeg` (
+	IN media_type VARCHAR(40)
+) 
+BEGIN
+
+DECLARE return_value VARCHAR(40);
+
+DECLARE input_source_uuid VARCHAR(40);
+
+DECLARE output_source_uuid VARCHAR(40);
+DECLARE output_source_name VARCHAR(255);
+DECLARE output_source_type VARCHAR(40);
+
+
+DECLARE task_uuid VARCHAR(40);
+DECLARE task_name  VARCHAR(40);
+DECLARE task_media_type  VARCHAR(40);
+DECLARE task_vsize  VARCHAR(40);
+DECLARE task_vquality  VARCHAR(40);
+DECLARE task_schedule  VARCHAR(40);
+DECLARE task_output_source_uuid  VARCHAR(40);
+
+
+SET input_source_uuid='@TRANSCODE_TESTINPUTFILEMPEGTS_UUID@';
+SET output_source_uuid='@TRANSCODE_TESTOUTPUTFILEMPEGTS_UUID@';
+SET output_source_name = '@TRANSCODE_TESTOUTPUTSOURCE_NAME@';
+SET output_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';
+call klk_app_transcode_source_add(output_source_uuid, output_source_name,
+ media_type, output_source_type, return_value);
+
+-- Now we add a task
+SET task_uuid = NULL;
+SET task_name = 'task_mpegts_test';
+SET task_media_type = media_type;
+SET task_vsize = '@MODULE_TRANS_VSIZE_DEFAULT_UUID@';
+SET task_vquality = '@MODULE_TRANS_VQUALITY_DEFAULT_UUID@';
+SET task_schedule = '@MODULE_TRANS_SCHEDULE_REBOOT@';
+call klk_app_transcode_task_add(task_uuid, task_name, input_source_uuid,
+     output_source_uuid, 
+	 task_vsize, task_vquality, 
+	 task_schedule, 0, return_value);
+
+END;$$
+
+DELIMITER ;

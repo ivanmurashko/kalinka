@@ -1,0 +1,36 @@
+DELIMITER $$
+
+/* The test data for ServerDaemon test */
+
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid1 = null;$$
+
+call klk_host_get_uuid(@hostname, @hostguid1);$$
+
+/* APPLICATION SETUP */
+
+-- create dvb demo application
+SET @application = '@MODULE_SRV_TEST_APP1_ID@' ;$$
+SET @app_name = '@MODULE_SRV_TEST_APP1_NAME@';$$
+SET @enabled = 0;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 1';$$
+CALL klk_application_update(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+SET @application = '@MODULE_SRV_TEST_APP3_ID@' ;$$
+SET @app_name = '@MODULE_SRV_TEST_APP3_NAME@';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'Test 3';$$
+CALL klk_application_update(@application, @application, 
+     @app_name, @enabled, @status,
+     @priority, @hostguid1, @description, @return_value);$$ 
+
+DELIMITER ;

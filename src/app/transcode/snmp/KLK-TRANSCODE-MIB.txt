@@ -1,0 +1,142 @@
+KLK-TRANSCODE-MIB DEFINITIONS::= BEGIN
+-- =================================
+-- .1.3.6.1.4.1.31106.7
+-- .iso.org.dod.internet.private.enterprises.klk.transcode
+
+-- check MIB file:
+--   snmptranslate -M+. -mKLK-TRANSCODE-MIB -Tp -IR transcode
+
+-- getting a OID:
+--   snmptranslate -M+. -mKLK-TRANSCODE-MIB -IR klkTaskStartFailed
+
+-- getting a textual OID:
+--   snmptranslate -On -M+. -mKLK-TRANSCODE-MIB -IR klkTaskStartFailed
+
+-- getting a description:
+--   snmptranslate -Td -M+. -mKLK-TRANSCODE-MIB -IR klkTaskStartFailed
+
+
+-- generate a code
+--  env MIBS="+KLK-TRANSCODE-MIB" mib2c -c mib2c.iterate.conf klkStatusTable
+-- =================================
+-- =================================
+IMPORTS
+  enterprises                                FROM SNMPv2-SMI,
+  klk                                        FROM KLK-MIB
+  OBJECT-TYPE, MODULE-IDENTITY, Integer32,Counter64  FROM SNMPv2-SMI
+  DisplayString	                             FROM SNMPv2-TC;
+
+--
+-- A brief description and update information about this mib.
+--
+transcode MODULE-IDENTITY
+  LAST-UPDATED "201001050000Z"
+  ORGANIZATION "Kalinka Team"
+  CONTACT-INFO "Ivan Murashko
+               "
+  DESCRIPTION  "MIB for Kalinka transcode application module
+               "
+  ::= { klk 7 }
+
+Unsigned64 ::= TEXTUAL-CONVENTION 
+  STATUS current 
+  DESCRIPTION "An unsigned 64 bit integer." 
+  SYNTAX Counter64 
+
+klkStatusTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF klkStatusEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+    "A list of transcode statuses."
+  ::= { transcode 1 }
+
+klkStatusEntry OBJECT-TYPE
+  SYNTAX     KLKHTTPStatusEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+    "An entry containing information applicable to a
+    one transcode task"
+  INDEX { klkIndex }
+  ::= { klkStatusTable 1 }
+
+KLKHTTPStatusEntry ::=
+  SEQUENCE {
+    klkIndex           Counter32,
+    klkTaskName        DisplayString,
+    klkInputSource     DisplayString,
+    klkOutputSource    DisplayString,
+    klkDuration        Unsigned64,
+    klkRunningCount    Counter32,
+    klkTotalDuration   Unsigned64
+  }
+
+klkIndex OBJECT-TYPE
+  SYNTAX      Counter32
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "The record id"
+  ::= { klkStatusEntry 1 }
+
+klkTaskName OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "The transcode task name"
+  ::= { klkStatusEntry 2 }
+
+klkInputSource OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "Transcode input source name (source)"
+  ::= { klkStatusEntry 3 }
+
+klkOutputSource OBJECT-TYPE
+  SYNTAX      DisplayString (SIZE (0..255))
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "Transcode output source name (destination)"
+  ::= { klkStatusEntry 4 }
+
+klkDuration OBJECT-TYPE
+  SYNTAX      Unsigned64
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "Task duration in nanoseconds. There is an info about
+  currently run task"
+  ::= { klkStatusEntry 5 }
+
+klkRunningCount OBJECT-TYPE
+  SYNTAX      Counter32
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "How many times the task was started"
+  ::= { klkStatusEntry 6 }
+
+klkTotalDuration OBJECT-TYPE
+  SYNTAX      Unsigned64
+  MAX-ACCESS  read-only
+  STATUS      current
+  DESCRIPTION
+          "There is a total time for the task in active state. The
+  time include both actual duration and time spend for finished tasks
+  currently run task" 
+  ::= { klkStatusEntry 7 }
+
+traps OBJECT IDENTIFIER ::= { transcode 2 }
+
+klkTaskStartFailed NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "The task start up was failed. The task uuid transferred
+  as the trap value"
+  ::= { traps 1 }
+
+END

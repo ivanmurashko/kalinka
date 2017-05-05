@@ -1,0 +1,38 @@
+Template: kalinka-server/server
+Type: string
+Default: kalinka-server
+Description: Mediaserver name
+ What name of the mediaserver should be used by Kalinka?
+
+Template: kalinka-server/snmpreceiver
+Type: string
+Default: localhost
+Description: SNMP receiver host name
+ What SNMP receiver should be used by this server?
+
+Template: kalinka-server/snmpcommunity
+Type: select
+Choices: public, private
+Default: public
+Description: SNMP community
+ What SNMP community should be used by this server?
+
+Template: kalinka-server/database
+Type: string
+Default: klkuser:klkpwd@localhost/kalinka/
+Description: Database connection string
+ What database connection string should be used by this server?
+ The string should follow the following format:
+ USER:PASSWORD@SERVER/DBNAME/
+
+Template: kalinka-server/recreate
+Type: boolean
+Default: false
+Description: Do you want to recreate database?
+ Database will be recreated if you choose the flag
+
+Template: kalinka-server/detect
+Type: boolean
+Default: true
+Description: Do you want to detect resources?
+ Resources will be added to the database if you choose the flag

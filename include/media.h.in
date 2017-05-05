@@ -1,0 +1,210 @@
+/**
+   @file media.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2010/02/28 created by ipp (Ivan Murashko)
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLK_MEDIA_H
+#define KLK_MEDIA_H
+
+namespace klk
+{
+    namespace media
+    {
+        /** @defgroup grMedia Media types
+            @{
+
+            Kalinka media server is a broadcast mediaserver that
+            streams media data in different formats
+
+            There is a list of media data format supported by the mediaserver
+
+            @ingroup grCommon
+        */
+
+        /**
+           @brief Media type FLV
+
+           Flash Video is a file format used to deliver video over the Internet using
+           Adobe Flash Player (initially produced by Macromedia) versions 6–10.
+
+           There are two different video file formats defined by Adobe Systems and
+           supported in Adobe Flash Player: FLV and F4V
+
+           Codec support
+           Supported media types in FLV file format:
+           -  Video: On2 VP6, Sorenson Spark (Sorenson H.263), Screen video, H.264
+           -  Audio: MP3, ADPCM, Linear PCM, Nellymoser, Speex,
+           AAC, G.711 (reserved for internal use)
+
+           Supported media types in F4V file format:[1]
+           - Video: H.264
+           - Images (still frame of video data): GIF, PNG, JPEG
+           - Audio: AAC, HE-AAC, MP3
+
+           @note The info was taken from http://en.wikipedia.org/wiki/Flash_Video
+
+           @see http://www.adobe.com/devnet/flv/
+
+           @see klk::trans::FLVBranchFactory
+        */
+        const std::string FLV = "@MEDIA_TYPE_FLV@";
+
+        /**
+           @brief  Media type MPEGTS
+
+           Transport stream (TS, TP, MPEG-TS, or M2T) is a communications protocol
+           for audio, video, and data. And equivalently it is also known as a container
+           format that encapsulates packetized elementary streams and other data.
+
+           \par Video
+
+           The Video section, part 2 of MPEG-2, is similar to the previous MPEG-1
+           standard, but also provides support for interlaced video, the format used
+           by analog broadcast TV systems. MPEG-2 video is not optimized for
+           low bit-rates, especially less than 1 Mbit/s at standard definition resolutions.
+           All standards-compliant MPEG-2 Video decoders are fully capable of playing
+           back MPEG-1 Video streams conforming to the Constrained Parameters
+           Bitstream syntax. MPEG-2/Video is formally known as ISO/IEC 13818-2 and
+           as ITU-T Rec. H.262.
+
+           With some enhancements, MPEG-2 Video and Systems are also used
+           in some HDTV transmission systems.
+
+           \par Audio
+
+           The MPEG-2 Audio section, defined in part 3 of the standard, enhances
+           MPEG-1's audio by allowing the coding of audio programs with more than
+           two channels, up to 5.1 multichannel. This method is backwards-compatible
+           (also known as MPEG-2 BC), allowing MPEG-1 audio decoders to
+           decode the two main stereo components of the presentation. MPEG-2 part 3
+           also defined additional bit rates and sample rates for MPEG-1 Audio Layer I, II
+           and III.
+
+           Part 7 of the MPEG-2 standard specifies a rather different,
+           non-backwards-compatible audio format[4] (also known as MPEG-2 NBC[3][2][8]).
+           Part 7 is referred to as MPEG-2 AAC. AAC is more efficient than the previous
+           MPEG audio standards, and is in some ways less complicated than its
+           predecessor, MPEG-1 Audio, Layer 3, in that it does not have the hybrid filter
+           bank. It supports from 1 to 48 channels at sampling rates of 8 to 96 kHz, with
+           multichannel, multilingual, and multiprogram capabilities. Advanced
+           Audio is also defined in Part 3 of the MPEG-4 standard.
+
+
+           @note the info taken from http://en.wikipedia.org/wiki/MPEG_transport_stream
+
+        */
+        const std::string MPEGTS = "@MEDIA_TYPE_MPEGTS@";
+
+        /**
+           @brief  Media type RTP with MPEGTS as payload
+
+           The RTP with payload mp2t
+
+           @see http://tools.ietf.org/id/draft-ietf-avt-rtp-mp2t-00.txt
+
+           @see klk::media::MPEGTS
+
+        */
+        const std::string RTP_MPEGTS = "@MEDIA_TYPE_RTP_MPEGTS@";
+
+        /**
+           @brief Media type TXT
+
+           Simple ASCII text, Used mainly at @ref grTestHTTP "HTTP streamer tests"
+        */
+        const std::string TXT = "@MEDIA_TYPE_TXT@";
+
+        /**
+           @brief  Media type Theora
+
+           We use ogg as container format, theora as video encoder and vorbis as
+           audio encoder. Below info about each one
+
+           \par Ogg
+
+           Ogg is a free, open standard container format maintained by the Xiph.Org
+           Foundation. The creators of the Ogg format claim that it is unrestricted by
+           software patents and is designed to provide for efficient streaming and
+           manipulation of high quality digital multimedia.
+
+           The name "Ogg" refers to the file format, which can multiplex a number
+           of separate independent free and open source codecs for audio, video,
+           text (such as subtitles), and metadata.
+
+           \par Theora
+
+           Theora is a free and open lossy video compression
+           format. It is developed by the Xiph.Org Foundation and distributed
+           without licensing fees alongside their other free and open media
+           projects, including the Vorbis audio codec and the Ogg container.
+
+           \par Vorbis
+
+           Vorbis is a free software / open source project headed by the Xiph.Org
+           Foundation (formerly Xiphophorus company). The project produces an
+           audio format specification and software implementation (codec) for
+           lossy audio compression. Vorbis is most commonly used in conjunction
+           with the Ogg container format and it is therefore often referred to as Ogg Vorbis.
+
+           Vorbis is a continuation of audio compression development started in 1993
+           by Chris Montgomery. Intensive development began following a September
+           1998 letter from Fraunhofer Society announcing plans to charge licensing
+           fees for the MP3 audio format. Vorbis project started as part of the Xiphophorus
+           company's Ogg project (also known as OggSquish multimedia project).
+           Chris Montgomery began work on the project and was assisted by a growing
+           number of other developers. They continued refining the source code until
+           the Vorbis file format was frozen for 1.0 in May 2000 and a stable version (1.0)
+           of the reference software was released on July 19, 2002.
+
+           @see klk::trans::TheoraBranchFactory
+        */
+        const std::string THEORA = "@MEDIA_TYPE_THEORA@";
+
+        /**
+           @brief Dummy media type
+
+           The media type means that no need to any recode to be done
+        */
+        const std::string EMPTY ="@MEDIA_TYPE_EMPTY@";
+
+        /**
+           @brief Auto media type
+
+           The media type means that the media type is determined automatically
+        */
+        const std::string AUTO ="@MEDIA_TYPE_AUTO@";
+
+        /** @} */
+    }
+}
+
+#endif //KLK_MEDIA_H

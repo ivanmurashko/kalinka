@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<klktestdata>
+  <tuneinfo>
+    <type>dvbs</type>
+    <adapter>0</adapter>
+    <frontend>0</frontend>
+    <frequency>11304000</frequency>
+    <polarity>h</polarity>
+    <symbol-rate>27500</symbol-rate>
+    <code-rate-hp>3</code-rate-hp>
+  </tuneinfo>
+  <channel1>
+    <name>A-ONE</name>
+    <station_id>first</station_id>
+    <channel_no>400</channel_no>
+    <host>127.0.0.1</host>
+    <port>4001</port>
+  </channel1>
+  <channel2>
+    <name>7TV</name>
+    <station_id>second</station_id>
+    <channel_no>410</channel_no>
+    <host>127.0.0.1</host>
+    <port>4002</port>
+  </channel2>
+</klktestdata>
+

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PREFIX=/usr/local/kalinka/doxygen
+DATADIR=/usr/local/kalinka/doxygen
+DOCDIR=/usr/local/kalinka/doxygen
+CURDIR=`pwd`
+
+./cleanup.sh
+./bootstrap.sh
+
+
+./configure --enable-debug --prefix=$PREFIX --datadir=$DATADIR  --docdir=$DOCDIR
+cd doc  && make install
+chmod a+r -R $DOCDIR
+chown -R www-data.www-data $DOCDIR
+cd $CURDIR
+./cleanup.sh

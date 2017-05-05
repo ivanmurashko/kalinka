@@ -1,0 +1,25 @@
+DELIMITER $$
+
+-- create hosts
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- Main module endpoint for messages
+SET @rv=0;$$
+SET @modid = '@MODULE_COMMON_ID@';$$
+CALL klk_adapter_update(@hostguid, @modid, '@MODULE_ADAPTER_MESSAGES_OBJECT@', '@ADAPTER_TEST_MOD_ENDPOINT@', @rv);$$
+
+-- create http demo application
+SET @application = '@HTTPSTREAMER_TESTAPPLICATION@' ;$$
+SET @module = '@MODULE_HTTP_ID@' ;$$
+SET @app_name = 'httpstream';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'http streaming server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @rv);$$ 
+
+SET @appid = '@MODULE_HTTP_ID@';$$
+CALL klk_adapter_update(@hostguid, @appid, '@MODULE_ADAPTER_MESSAGES_OBJECT@', '@ADAPTER_TEST_APP_ENDPOINT@', @rv);$$

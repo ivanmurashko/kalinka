@@ -1,0 +1,187 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create antenna and receiver card
+SET @signalsource = '@DVB_SIGNAL_SOURCE_SAT@';$$
+
+SET @description = 'dvb-s sample card';$$
+SET @dvbtype = '@DVB_TYPE_DVB_S@';$$
+SET @enabled = 1;$$
+SET @adapterno = 0;$$
+SET @frontendno = 0;$$
+SET @resource_name = 'testcard';$$
+CALL klk_dvb_resource_add(@busguid, @dvbtype, @signalsource, @enabled, 
+		@adapterno, @frontendno, @resource_name, @resourceguid, 
+		@result); $$
+
+
+-- create network conncection
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+
+
+-- create network card
+SET @node_name = 'eth0';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+
+
+/* SITE / NETWORK SETUP */
+
+SET @name='A-ONE';$$
+SET @provider=null;$$
+SET @frequency = 11304000;$$ 
+SET @channel_aone = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=27500;$$
+SET @channel_no = 400;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_aone, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 401;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_aone_v, 
+		@channel_aone, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 402;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_aone_a, @channel_aone, @pidtype, 
+		@pidno, @description, @result);$$
+
+
+SET @name='7TV';$$
+SET @provider=null;$$
+SET @frequency = 11304000;$$ 
+SET @channel_7tv = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=27500;$$
+SET @channel_no = 410;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_7tv, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 411;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_7tv_v, 
+		@channel_7tv, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 412;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_7tv_a, @channel_7tv, @pidtype, 
+		@pidno, @description, @result);$$
+
+SET @name='SOUZ';$$
+SET @provider=NULL;$$
+SET @frequency = 11304000;$$ 
+SET @channel_souz = null;$$
+SET @code_rate_hp = 3;$$
+SET @polarity='h';$$
+SET @symbol_rate=27500;$$
+SET @channel_no = 3;$$
+SET @diseq_source=0;$$
+CALL klk_dvb_s_channel_add(@channel_souz, @signalsource, @name, @provider, @diseq_source,
+		@frequency, @polarity, @symbol_rate, @code_rate_hp, 
+		@channel_no, @result);$$
+
+SET @pidtype = '@DVB_PID_TYPE_VIDEO@';$$
+SET @pidno = 411;$$
+SET @description = 'video';$$
+CALL klk_dvb_channel_pid_add(@pid_souz_v, 
+		@channel_souz, @pidtype, @pidno, @description, @result);$$ 
+
+SET @pidtype = '@DVB_PID_TYPE_AUDIO@';$$
+SET @pidno = 412;$$
+SET @description = 'audio';$$
+CALL klk_dvb_channel_pid_add(@pid_souz_a, @channel_souz, @pidtype, 
+		@pidno, @description, @result);$$
+
+
+-- assign ip address to network card
+
+SET @address = NULL;$$
+SET @ipaddress = '127.0.0.1';$$
+SET @ipmask = '255.255.255.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+-- setup routes 
+
+SET @proto = '@NETWORK_PROTO_UDP@';$$
+
+SET @route1 = NULL;$$
+SET @name1 = 'route1';$$
+SET @host1 = '234.0.1.1';$$
+SET @port1 = 20000;$$
+CALL klk_network_route_add(@route1, @name1, 
+     @address, @host1, @port1, @proto, @result);$$
+
+
+SET @route2 = NULL;$$
+SET @name2 = 'route2';$$
+SET @host2 = '234.0.1.2';$$
+SET @port2 = 20000;$$
+CALL klk_network_route_add(@route2, @name2, 
+     @address, @host2, @port2, @proto, @result);$$
+
+SET @route3 = NULL;$$
+SET @name3 = 'route3';$$
+SET @host3 = '234.0.1.3';$$
+SET @port3 = 20000;$$
+CALL klk_network_route_add(@route3, @name3,
+     @address, @host3, @port3, @proto, @result);$$
+
+
+
+/* APPLICATION SETUP */
+
+-- create dvb demo application
+SET @module = '@MODULE_DVBSTREAMER_ID@' ;$$
+SET @app_name = 'dvbsstream';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'dvb-s streaming server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+
+-- create dvb application data
+SET @station_aone = NULL;$$
+CALL klk_app_dvb_station_add (@station_aone, @channel_aone,
+		@route1, 1, 0, @result);$$
+
+SET @station_7tv = NULL;$$
+CALL klk_app_dvb_station_add (@station_7tv, @channel_7tv,
+		@route2, 1, 1, @result);$$
+
+SET @station_souz = NULL;$$
+CALL klk_app_dvb_station_add (@station_souz, @channel_souz,
+		@route3, 1, 2, @result);$$
+
+
+DELIMITER ;

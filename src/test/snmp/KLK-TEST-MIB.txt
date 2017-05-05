@@ -1,0 +1,43 @@
+KLK-TEST-MIB DEFINITIONS::= BEGIN
+-- =================================
+-- .1.3.6.1.4.1.31106.2
+-- .iso.org.dod.internet.private.enterprises.klk.test
+
+-- check MIB file:
+--   snmptranslate -M+. -mKLK-TEST-MIB -Tp -IR test
+
+-- getting a OID:
+--   snmptranslate -M+. -mKLK-TEST-MIB -IR  klkTestNotification
+
+-- getting a textual OID:
+--   snmptranslate -On -M+. -mKLK-TEST-MIB -IR klkTestNotification
+
+-- getting a description:
+--   snmptranslate -Td -M+. -mKLK-TEST-MIB -IR klkTestNotification
+
+-- =================================
+-- =================================
+IMPORTS
+  enterprises                                FROM SNMPv2-SMI,
+  klk                                        FROM KLK-MIB
+  OBJECT-TYPE, MODULE-IDENTITY, Integer32    FROM SNMPv2-SMI
+  DisplayString	                             FROM SNMPv2-TC;
+
+--
+-- A brief description and update information about this mib.
+--
+test MODULE-IDENTITY
+  LAST-UPDATED "200905260000Z"
+  ORGANIZATION "Kalinka Team"
+  CONTACT-INFO "Ivan Murashko
+               "
+  DESCRIPTION  "MIB for Kalinka mediaserver utests
+               "
+  ::= { klk 2 }
+
+klkTestNotification NOTIFICATION-TYPE
+  STATUS current
+  DESCRIPTION "The notification is used for unit tests"
+  ::= { test 1 }
+
+END

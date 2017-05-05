@@ -1,0 +1,185 @@
+/**
+   @file paths.h
+   @brief This file is part of Kalinka mediaserver.
+   @author Ivan Murashko <ivan.murashko@gmail.com>
+
+   Copyright (c) 2007-2012 Kalinka Team
+
+   Permission is hereby granted, free of charge, to any person obtaining
+   a copy of this software and associated documentation files (the
+   "Software"), to deal in the Software without restriction, including
+   without limitation the rights to use, copy, modify, merge, publish,
+   distribute, sublicense, and/or sell copies of the Software, and to
+   permit persons to whom the Software is furnished to do so, subject to
+   the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+   IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+   CHANGE HISTORY
+
+   @date
+   - 2007/Apr/30 created by ipp (Ivan Murashko)
+   - 2009/Apr/4 klkdir namespace was introduced by ipp
+   - 2009/08/02 header was changed by header.py script
+   - 2010/01/06 header was changed by header.py script
+   - 2011/01/01 header was changed by header.py script
+   - 2012/02/03 header was changed by header.py script
+*/
+
+#ifndef KLK_PATHS_H
+#define KLK_PATHS_H
+
+#include <string>
+
+/** @defgroup grPaths Installation paths
+    @{
+
+    Installation paths
+
+    @see grDefines "Common defines"
+
+
+    @ingroup grCommon
+*/
+
+namespace klk
+{
+    namespace dir
+    {
+
+        /**
+           @var SERVER_PIDFILE
+           @brief File name for the mediaserver pid file
+
+           The file keeps the mediaserver pid. The information
+           allows us to stop mediaserver with kill(2)
+
+           The file is also used to prevent mediaserver startup
+           more than one time.
+        */
+        const std::string SERVER_PIDFILE = "@KLK_LOCK_FILE@";
+
+        /**
+           @var INST
+           @brief installation folder
+
+           Mediaserver installation folder. There is a difference between
+           release and debug mode. In release we use / as the root prefix.
+           In debug mode the root prefix is set up by configure script
+        */
+#ifdef DEBUG
+        const std::string INST = "@prefix@";
+#else
+        const std::string INST = "";
+#endif // DEBUG
+
+        /**
+           @var ETC
+           @brief Config folder
+
+           Folder with configuration files
+        */
+#ifdef DEBUG
+        const std::string ETC = "@etcdir@";
+#else
+        const std::string ETC = "/etc/klk";
+#endif // DEBUG
+
+        /**
+           @var CFG
+           @brief Path to Kalinka mediaserver configuration file
+
+           Kalinka mediaserver main configuration file
+        */
+#ifdef DEBUG
+        const std::string CFG = "@etcdir@/@conffile@";
+#else
+        const std::string CFG = "/etc/klk/@conffile@";
+#endif
+
+#ifdef DEBUG
+        /**
+           @var CFG_TEST
+           @brief Path to Kalinka mediaserver configuration file
+
+           Path to Kalinka mediaserver configuration file
+
+           @note the config is used for unit tests
+        */
+        const std::string CFG_TEST = "@etcdir@/@testconffile@";
+#endif
+
+        /**
+           @var VAR
+           @brief /var dir
+
+           /var dir
+        */
+#ifdef DEBUG
+        const std::string VAR = "@vardir@";
+#else
+        const std::string VAR = "/var";
+#endif // DEBUG
+
+        /**
+           @var LOG
+           @brief Custom log dir
+
+           The log file keeps some additional (to syslog) log info.
+           Especially output from std::cout and std::cerr
+        */
+#ifdef DEBUG
+        const std::string LOG = "@prefix@/var/log/kalinka";
+#else
+        const std::string LOG = "/var/log/kalinka";
+#endif // DEBUG
+
+        /**
+           @var SHARE
+           @brief Data folder
+
+           Data folder
+        */
+#ifdef DEBUG
+        const std::string SHARE = "@sharedir@";
+#else
+        const std::string SHARE = "/usr/share/kalinka";
+#endif // DEBUG
+
+        /**
+           @var SQL
+           The folder with SQL scripts
+        */
+#ifdef DEBUG
+        const std::string SQL = "@sharedir@/sql";
+#else
+        const std::string SQL = "/usr/share/kalinka/sql";
+#endif // DEBUG
+
+        /**
+           @var MYSQL_UTIL
+           The mysql util path
+        */
+        const std::string MYSQL_UTIL = "@MYSQL_UTIL@";
+
+        /**
+           @var PERL
+           Path to perl interp.
+        */
+        const std::string PERL = "@PERL@";
+    };
+};
+
+/** @} */
+
+#endif //KLK_PATHS_H
+

@@ -1,0 +1,91 @@
+DELIMITER $$
+
+/* HARDWARE SETUP */
+
+-- create host
+SET @hostname = 'testserver';$$
+SET @hostguid = null;$$
+call klk_host_get_uuid(@hostname, @hostguid);$$
+
+-- create host (external)
+SET @hostname_ext = 'external testserver';$$
+SET @hostguid_ext = null;$$
+call klk_host_get_uuid(@hostname_ext, @hostguid_ext);$$
+
+-- create bus
+SET @description = 'pci bus #1';$$
+SET @id = 1;$$
+SET @bus_type_id = 'f52a9046-be9c-102b-92d7-001d093d7c53';$$
+call klk_bus_add(@hostguid, @id, @description, @bus_type_id, @busguid, 
+		@result); $$
+
+-- create network card
+SET @trunk = '@NETWORK_TRUNK_DEFAULT@';$$
+SET @node_name = '@NETDEV_DEFAULT@';
+SET @enabled = 1;
+SET @resource_name = @node_name;
+CALL klk_network_interface_resource_add(@busguid, @trunk, @enabled, 
+		@node_name, @resource_name, @nwresourceguid, @result);$$
+
+SET @address = NULL;$$
+SET @ipaddress = '127.0.0.1';$$
+SET @ipmask = '255.0.0.0';$$
+CALL klk_network_interface_address_add(@address, @nwresourceguid, @ipaddress,
+		@ipmask, @result);$$
+
+
+/* APPLICATION SETUP */
+
+-- create transcode demo application
+SET @application = '@TRANSCODE_TESTAPPLICATION@' ;$$
+SET @module = '@MODULE_TRANS_ID@' ;$$
+SET @app_name = 'transcode@testserver';$$
+SET @enabled = 1;$$
+SET @status = 0;$$
+SET @priority = 0;$$
+SET @description = 'transcode server';$$
+CALL klk_application_add(@application, @module, @app_name, @enabled, @status,
+		@priority, @hostguid, @description, @return_value);$$ 
+
+-- create main application data --
+
+-- test input data from an network route
+SET @proto = '@NETWORK_PROTO_UDP@';$$
+SET @route = '@TRANSCODE_TESTROUTE_UUID@';$$
+SET @name = '@TRANSCODE_TESTROUTE_NAME@';$$
+SET @host = '@TRANSCODE_TESTROUTE_ADDR@';$$
+SET @port = @TRANSCODE_TESTROUTE_PORT@;$$
+CALL klk_network_route_add(@route, @name, 
+     @address, @host, @port, @proto, @result);$$
+
+SET @route_source_uuid = @route;$$
+SET @route_source_name = '@TRANSCODE_TESTROUTESOURCE_NAME@';$$
+SET @route_media_type = '@MEDIA_TYPE_RTP_MPEGTS@';$$
+SET @route_source_type = '@MODULE_TRANS_SOURCE_TYPE_NET_UUID@';$$
+call klk_app_transcode_source_add(@route_source_uuid, @route_source_name,
+ @route_media_type, @route_source_type, @return_value);$$
+
+-- test output data to a simple file
+SET @output_file_uuid='@TRANSCODE_TESTOUTPUTFILERTP_UUID@';$$
+call klk_file_add(@output_file_uuid, '@TRANSCODE_TESTOUTPUTFILERTP_NAME@',
+     '@TRANSCODE_TESTOUTPUTFILERTP_PATH@', @hostguid, 
+	 '@FILE_TYPE_REGULAR_UUID@', @return_value);$$
+SET @output_source_uuid = @output_file_uuid;$$
+SET @output_source_name = '@TRANSCODE_TESTOUTPUTSOURCE_NAME@';$$
+SET @output_media_type = '@MEDIA_TYPE_AUTO@';$$
+SET @output_source_type = '@MODULE_TRANS_SOURCE_TYPE_FILE_UUID@';$$
+call klk_app_transcode_source_add(@output_source_uuid, @output_source_name,
+ @output_media_type, @output_source_type, @return_value);$$
+
+-- Now we add two tasks
+SET @task_uuid = '@TRANSCODE_TESTTASK1_UUID@';$$
+SET @task_name = '@TRANSCODE_TESTTASK1_NAME@';$$
+SET @task_vsize = '@MODULE_TRANS_VSIZE_DEFAULT_UUID@';$$
+SET @task_vquality = '@MODULE_TRANS_VQUALITY_DEFAULT_UUID@';$$
+SET @task_schedule = '@MODULE_TRANS_SCHEDULE_REBOOT@';$$
+call klk_app_transcode_task_add(@task_uuid, @task_name, @route_source_uuid,
+     @output_source_uuid, 
+ 	 @task_vsize, @task_vquality, 		 
+	 @task_schedule, 0, @return_value);$$
+
+DELIMITER ;
